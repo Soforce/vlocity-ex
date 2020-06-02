@@ -1,0 +1,83 @@
+<template>
+    <lightning-card title={viewerCardTitle} icon-name="custom:custom108">
+        <div class="slds-m-around_medium"> 
+            <template if:false={attribute}>
+                <div slot="actions" >
+                    <lightning-button-group class="slds-m-bottom_medium slds-align_absolute-right">
+                        <lightning-button label="Save" icon-name="utility:save" onclick={handleJSONAttributeSaveClick}></lightning-button>
+                        <lightning-button label="Refresh" icon-name="utility:refresh" onclick={handleJSONAttributeRefreshClick}></lightning-button>
+                        <lightning-button label="Copy JSON" icon-name="utility:copy" onclick={handleJSONAttributeCopyClick}></lightning-button>
+                    </lightning-button-group>
+                </div>
+                <lightning-datatable key-field="code" data={attributes} columns={columns} onrowaction={handleAttributeRowAction} hide-checkbox-column>
+                </lightning-datatable>
+            </template>
+        </div>
+        <template if:true={attribute}>
+            <div class="slds-m-around_medium"> 
+                <template if:true={attribute.is_input}>
+                    <lightning-input label={attribute.name} value={attribute.value} type="text" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+                </template>
+                <template if:true={attribute.is_number}>
+                    <lightning-input label={attribute.name} value={attribute.value} type="number" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+                </template>
+                <template if:true={attribute.is_checkbox}>
+                    <lightning-input label={attribute.name} checked={attribute.value} type="checkbox" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+                </template>
+                <template if:true={attribute.is_combobox}>
+                    <lightning-combobox label={attribute.name} value={attribute.value} options={attribute.options} name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-combobox>
+                </template>
+                <lightning-button-group class="slds-m-top_medium">
+                    <lightning-button label="Update" icon-name="utility:check" onclick={handleAttributeUpdateClick}></lightning-button>
+                    <lightning-button label="Cancel" icon-name="utility:close" onclick={handleAttributeCloseClick}></lightning-button>
+                </lightning-button-group>
+
+            </div>
+            <lightning-accordion allow-multiple-sections-open>              
+                <lightning-accordion-section name="B" label="Attribute Metadata Reference" class="slds-text-body_small">
+                    <div class="slds-card slds-card_boundary slds-text-body_small">
+                        <div class="slds-m-around_medium">
+                            <div class="slds-form">
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled label="Attribute Code" value={attribute.code} class="slds-truncate" title={attribute.code} >
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled label="Category Code" value={attribute.category_code} class="slds-truncate" title={attribute.category_code}>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled label="Category Name" value={attribute.category_name} class="slds-truncate" title={attribute.category_name}>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled label="Data Type" value={attribute.data_type} class="slds-truncate" title={attribute.data_type}>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled type="Checkbox" label="Is Active" checked={attribute.active} class="slds-truncate" title={attribute.active}>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal">
+                                    <lightning-input disabled type="Checkbox" label="Is Readonly" checked={attribute.readonly} class="slds-truncate" title={attribute.readonly}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-accordion-section>  
+            </lightning-accordion>
+    </template>
+    </lightning-card>
+<!--
+    <lightning-card
+        title="JSONAttribute Viewer"
+        icon-name="standard:account">
+            <div class="slds-m-around_medium">
+                <p>
+                    <lightning-textarea name="input2" label="Textarea field with a predefined value" value={jsonAttribute}></lightning-textarea>
+                </p>
+            </div>
+    </lightning-card>
+-->
+</template>

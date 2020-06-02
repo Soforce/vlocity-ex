@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>48.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <masterLabel>Vlocity JSON Attribute Viewer</masterLabel>
+    <description>View and modify Vlocity JSON Attribute in a user-friendly way instead of big JSON blob.</description>
+</LightningComponentBundle>
