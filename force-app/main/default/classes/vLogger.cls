@@ -1,7 +1,8 @@
 public with sharing class vLogger {
+    @TestVisible
     private static Boolean isLogging = true;
     static {
-        vlocity_cmt__CpqConfigurationSetup__c cpqSetup = vlocity_cmt__CpqConfigurationSetup__c.getInstance('VlocityBoosterLogging');
+        vlocity_cmt__CpqConfigurationSetup__c cpqSetup = vlocity_cmt__CpqConfigurationSetup__c.getInstance('SoforceLogging');
         if (cpqSetup != null && cpqSetup.vlocity_cmt__SetupValue__c != 'True') {
             isLogging = true;
         }
