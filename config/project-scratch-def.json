@@ -1,7 +1,7 @@
 {
-  "orgName": "Demo company",
+  "orgName": "Soforce",
   "edition": "Developer",
-  "features": [],
+  "features": ["ProductsAndSchedules"],
   "settings": {
     "lightningExperienceSettings": {
         "enableS1DesktopEnabled": true
@@ -13,6 +13,16 @@
     },
     "mobileSettings": {
         "enableS1EncryptedStoragePref2": false
+    },
+    "quoteSettings": {
+      "enableQuote" : true
+    },
+    "forecastingSettings": {
+      "enableForecasts" : true
+    },
+    "productSettings": {
+      "enableQuantitySchedule" : true,
+      "enableRevenueSchedule" : true
     }
   }
 }

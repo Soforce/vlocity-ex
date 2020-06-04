@@ -4,14 +4,18 @@
             "path": "force-app",
             "default": true,
             "package": "vlocity-ex-base",
-            "versionName": "Version 0.1",
-            "versionNumber": "0.1.0.NEXT"
+			"versionName": "Version 0.1",
+			"versionNumber": "0.1.0.NEXT",
+			"dependencies": [{
+                    "package": "04t1J00000081x9QAA"
+				}
+			]
         }
     ],
     "namespace": "",
     "sfdcLoginUrl": "https://login.salesforce.com",
     "sourceApiVersion": "48.0",
     "packageAliases": {
-        "vlocity-ex-base": "0Ho1U00000000J8SAI"
+        "vlocity-ex-base": "0Ho3h000000CaVYCA0"
     }
 }
