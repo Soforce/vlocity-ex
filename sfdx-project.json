@@ -2,20 +2,23 @@
     "packageDirectories": [
         {
             "path": "force-app",
+            "package": "vlocity-extension",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
             "default": true,
-            "package": "vlocity-ex-base",
-			"versionName": "Version 0.1",
-			"versionNumber": "0.1.0.NEXT",
-			"dependencies": [{
-                    "package": "04t1J00000081x9QAA"
-				}
-			]
+            "dependencies": [
+                {
+                    "package": "04t1J000000mM3EQAU"
+                }
+            ]
         }
     ],
     "namespace": "",
     "sfdcLoginUrl": "https://login.salesforce.com",
     "sourceApiVersion": "48.0",
     "packageAliases": {
-        "vlocity-ex-base": "0Ho3h000000CaVYCA0"
+        "vlocity-ex-base": "0Ho3h000000CaVYCA0",
+        "vlocity-extension": "0Ho3h000000blUsCAI",
+        "vlocity-extension@0.1.0-1": "04t3h000002HDHRAA4"
     }
 }
