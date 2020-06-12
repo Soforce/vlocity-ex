@@ -10,3 +10,9 @@ sfdx force:package:create --name vlocity-extension --description "Soforce vlocit
 ```
 sfdx force:package:version:create -p "vlocity-extension" -d force-app -f config/package-def.json --installationkeybypass --wait 120 -v vdo20-hub
 ```
+
+
+```
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04t3h000002HDHRAA4   
+sfdx force:package:install --package 04t3h000002HDHRAA4
+```
