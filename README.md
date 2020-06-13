@@ -20,8 +20,20 @@ By applying the power of low-code, drag-and-drop functionality to customer engag
 
 
 ## <a id="json-attribute-viewer"></a> Vlocity JSON Attribute Viewer
-![Image of JSON Attribute Viewer](https://github.com/Soforce/vlocity-ex/blob/master/images/json-viewer.jpg) 
+By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c etc. 
+* You can view the attributes in a list
+* You can open the attribute to see the details of it
+* You can modify the attribute and save it back to the record
+* You can copy the JSON attribute blob into the clipboard
 
+![Image of JSON Attribute Viewer](https://github.com/Soforce/vlocity-ex/blob/master/images/json-viewer.jpg)
+
+
+### How to use Vlocity JSON Attribute Viewer
+1. Open the record (for example, QuoteLinteItem) in Lightning Experience
+2. Click "Setup" icon from the top-right of the page and choose "Edit Page"
+3. Find the "Vlocity JSON Attribute Viewer" under the "Custom" section of available components and drag & drop the component into your lighting record page.
 ## <a id="flow-in-om"></a> Using Lightning Flow in Vlocity OM
+
 
 
