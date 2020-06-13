@@ -6,7 +6,7 @@ public with sharing class vJSONAttributeGetter {
             this.attribute = attribute;
         }
         
-        @InvocableVariable(label='Items' description='The attributes retrieved for the itemId')
+        @InvocableVariable(label='Attributes' description='The attributes retrieved for the itemId')
         public List<vNameValuePair> attributes;
         public Response(vNameValuePair[] attributes) {
             this.attributes = attributes;
