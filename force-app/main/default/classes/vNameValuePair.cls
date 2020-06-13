@@ -8,6 +8,8 @@ public class vNameValuePair {
     @AuraEnabled
     public String value;
 
+    public vNameValuePair() {}
+    
     public vNameValuePair(String name, String value) {
         this.name = name;
         this.value = value;

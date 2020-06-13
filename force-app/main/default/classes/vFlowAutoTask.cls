@@ -13,7 +13,7 @@ global class vFlowAutoTask implements vlocity_cmt.XOMOrchestrationInterfaces.IAu
                 'itemId' => item.Id,
                 'fulfilmentRequestLineId' => item.vlocity_cmt__FulfilmentRequestLineId__c,
                 'planId' => item.vlocity_cmt__OrchestrationPlanId__c,
-                'orderId' => vlocity_cmt__OrchestrationPlanId__r.vlocity_cmt__OrderId__c
+                'orderId' => item.vlocity_cmt__OrchestrationPlanId__r.vlocity_cmt__OrderId__c
             };
             inputs.putAll(paraMap);
             
