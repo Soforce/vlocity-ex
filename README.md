@@ -20,6 +20,10 @@ or
 sfdx force:package:install --package 04t3h000002HkLhAAK
 ```
 ### <a id="configure-package"></a> Configure Vlocity-ex package
+1. Click [vlocity-ex datapacks](build/Post-installation/Datapacks/vlocity-ex-datapacks.json) to open the JSON datapack file.
+2. Copy and paste the JSON content into your text editor and save it as vlocity-ex-datapacks.json file.
+3. Open "Vlocity DataPacks" tab, click "Installed", then select "From File" in the "Import From" dropdown list in the top right of the "Vlocity DataPacks" page.
+4. Browse and select "vlcoity-ex-datapacks.json" file, then click "Next" several times to finish the import of the datapack.
 
 
 ## <a id="json-attribute-viewer"></a> Vlocity JSON Attribute Viewer
@@ -37,6 +41,9 @@ By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lig
 2. Click "Setup" icon from the top-right of the page and choose "Edit Page"
 3. Find the "Vlocity JSON Attribute Viewer" under the "Custom" section of available components and drag & drop the component into your lighting record page.
 ## <a id="flow-in-om"></a> Using Lightning Flow in Vlocity OM
+By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This extension feature helps you to extend Vlocity OM automation task with the lighting flow.
+To use Lightning autolaunched flow in your orchestration plan, you need add "AutoTask" orchestration item because there's no flow type of orchestration item at the moment.  
+
 
 
 
