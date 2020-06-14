@@ -19,6 +19,7 @@
     "packageAliases": {
         "vlocity-ex-base": "0Ho3h000000CaVYCA0",
         "vlocity-extension": "0Ho3h000000blUsCAI",
-        "vlocity-extension@0.1.0-1": "04t3h000002HDHRAA4"
+        "vlocity-extension@0.1.0-1": "04t3h000002HDHRAA4",
+        "vlocity-extension@0.1.0-2": "04t3h000002HkLhAAK"
     }
 }

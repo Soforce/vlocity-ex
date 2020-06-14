@@ -13,11 +13,11 @@ By applying the power of low-code, drag-and-drop functionality to customer engag
 ### <a id="install-package"></a>Install Vlocity-ex package
 You can install the extension package either
 ```
-https://login.salesforce.com/packaging/installPackage.apexp?p0=04t3h000002HDHRAA4   
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04t3h000002HkLhAAK
 ```
 or
 ```
-sfdx force:package:install --package 04t3h000002HDHRAA4
+sfdx force:package:install --package 04t3h000002HkLhAAK
 ```
 ### <a id="configure-package"></a> Configure Vlocity-ex package
 
