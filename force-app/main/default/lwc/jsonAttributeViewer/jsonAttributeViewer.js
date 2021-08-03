@@ -51,7 +51,10 @@ export default class JsonAttributeViewer extends LightningElement {
             this.jsonAttributeField = 'Asset.vlocity_cmt__JSONAttribute__c';
         } else if (this.objectApiName === 'vlocity_cmt__FulfilmentRequestLine__c')   {
             this.jsonAttributeField = 'vlocity_cmt__FulfilmentRequestLine__c.vlocity_cmt__JSONAttribute__c';
+        } else if (this.objectApiName === 'vlocity_cmt__InventoryItem__c')   {
+            this.jsonAttributeField = 'vlocity_cmt__InventoryItem__c.vlocity_cmt__JSONAttribute__c';
         }
+        
     }
 
     @wire(getRecord, { recordId: '$recordId', fields: '$jsonAttributeField' })
