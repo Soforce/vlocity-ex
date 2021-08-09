@@ -6,10 +6,10 @@
  */
 public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityOpenInterface {
     public class AttributeCategory {
-        public Id id;
-        public String code;
-        public String name;
-        public Integer displaySequence;
+        @AuraEnabled public Id id;
+        @AuraEnabled public String code;
+        @AuraEnabled public String name;
+        @AuraEnabled public Integer displaySequence;
 
         public AttributeCategory(Map<String, Object> categoryV2) {
             id = (Id)categoryV2.get('Id');
@@ -24,30 +24,34 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
     }
 
     public class AttributeSpecification {
-        public String code;
-        public String label;
-        public Integer displaySequence;
-        public String dataType;
-        public String inputType;
-        public Boolean multiselect;
-        public Boolean required;
-        public Boolean readonly;
-        public Boolean disabled;
-        public Boolean filterable;
-        public Boolean hasRules;
-        public Boolean hidden;
-        public Boolean cloneable;
-        public Boolean isNotTranslatable;
+        @AuraEnabled public String code;
+        @AuraEnabled public String label;
+        @AuraEnabled public Integer displaySequence;
+        @AuraEnabled public String valueType;
+        // @AuraEnabled public String dataType;
+        // @AuraEnabled public String inputType;
+        @AuraEnabled public Boolean multiselect;
+        @AuraEnabled public Boolean required;
+        @AuraEnabled public Boolean readonly;
+        @AuraEnabled public Boolean disabled;
+        @AuraEnabled public Boolean filterable;
+        @AuraEnabled public Boolean hasRules;
+        @AuraEnabled public Boolean hidden;
+        @AuraEnabled public Boolean cloneable;
+        @AuraEnabled public Boolean isNotTranslatable;
+        @AuraEnabled public String categoryCode;
+        @AuraEnabled public String categoryName;
 
-        public List<AttributeSpecValue> values;
-        public Object defaultValue;
+        @AuraEnabled public List<AttributeSpecValue> values;
+        @AuraEnabled public Object defaultValue;
 
         public AttributeSpecification(Map<String, Object> attrMapV1) {
             System.debug(JSON.serialize(attrMapV1));
 
             code = (String)attrMapV1.get('attributeuniquecode__c');
-            dataType = (String)attrMapV1.get('valuedatatype__c'); // TODO...
-            inputType = (String)attrMapV1.get('uidisplaytype__c');
+            // dataType = (String)attrMapV1.get('valuedatatype__c'); // TODO...
+            // inputType = (String)attrMapV1.get('uidisplaytype__c');
+            valueType = ((String)attrMapV1.get('valuedatatype__c')).toLowerCase();
             label = (String)attrMapV1.get('attributedisplayname__c');
             multiselect = (Boolean)attrMapV1.get('multiselect'); // TODO...
             required = (Boolean)attrMapV1.get('isrequired__c');
@@ -70,6 +74,7 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
                     Map<String, Object> valMap = (Map<String, Object>)valueObj;
                     AttributeSpecValue val = new AttributeSpecValue();
                     val.value = valMap.get('value');
+                    // val.label = (String)valMap.get('label');
                     val.displaySequence = Integer.valueOf(valMap.get('sequence'));
                     val.defaultSelected = false;
                     if (defValObj != null) {
@@ -90,8 +95,15 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
 
         public AttributeSpecification(Map<String, Object> attrMapV2, Map<String, Object> attrChangeV2, Object defVal) {
             code = (String)attrMapV2.get('code');
-            dataType = (String)attrMapV2.get('dataType');
-            inputType = (String)attrMapV2.get('inputType');
+            // dataType = (String)attrMapV2.get('dataType');
+            // inputType = (String)attrMapV2.get('inputType');
+            valueType = (String)attrMapV2.get('inputType');
+            if (valueType == 'number') {
+                valueType = (String)attrMapV2.get('dataType');
+                if (valueType == 'percentage') valueType = 'percent';
+            } else if (valueType == 'dropdown') {
+                valueType = 'picklist';
+            }
             label = (String)attrMapV2.get('label');
             multiselect = (Boolean)attrMapV2.get('multiselect');
             required = (Boolean)attrMapV2.get('required');
@@ -107,34 +119,38 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
             values = new List<AttributeSpecValue>();
             defaultValue = defVal;
             List<Object> valueObjs = (Object[])attrMapV2.get('values');
-            for (Object valueObj : valueObjs) {
-                Map<String, Object> valMap = (Map<String, Object>)valueObj;
-                if (valMap.containsKey('value')) {
-                    AttributeSpecValue val = new AttributeSpecValue();
-                    val.value = valMap.get('value');
-                    val.displaySequence = Integer.valueOf(valMap.get('displaySequence'));
-                    if (String.valueOf(val.value) == String.valueOf(defaultValue)) {
-                        val.defaultSelected = true;
-                    } else {
-                        val.defaultSelected = false;
-                    }
-                    // val.defaultSelected = (Boolean)valMap.get('defaultSelected');
+            // if (valueObjs != null) {
+                for (Object valueObj : valueObjs) {
+                    Map<String, Object> valMap = (Map<String, Object>)valueObj;
+                    if (valMap.containsKey('value')) {
+                        AttributeSpecValue val = new AttributeSpecValue();
+                        val.value = valMap.get('value');
+                        val.label = (String)valMap.get('label');
+                        val.displaySequence = Integer.valueOf(valMap.get('displaySequence'));
+                        if (String.valueOf(val.value) == String.valueOf(defaultValue)) {
+                            val.defaultSelected = true;
+                        } else {
+                            val.defaultSelected = false;
+                        }
+                        // val.defaultSelected = (Boolean)valMap.get('defaultSelected');
 
-                    values.add(val);
+                        values.add(val);
+                    }
                 }
-            }
+            // }
         }
     }
 
     public class AttributeSpecValue {
-        public Object value;
-        public Integer displaySequence;
-        public Boolean defaultSelected;
+        @AuraEnabled public Object value;
+        @AuraEnabled public String label;
+        @AuraEnabled public Integer displaySequence;
+        @AuraEnabled public Boolean defaultSelected;
     }
 
     public class AttributeMetadata {
-        public Map<String, AttributeCategory> categories;
-        public Map<String, AttributeSpecification> attributes;
+        @AuraEnabled public Map<String, AttributeCategory> categories;
+        @AuraEnabled public Map<String, AttributeSpecification> attributes;
         
         public AttributeMetadata() {
             categories = new Map<String, AttributeCategory>();
@@ -142,19 +158,89 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         }
     }
 
+    public class JSONAttribute {
+        @AuraEnabled public AttributeMetadata metadata { get; set; }
+        @AuraEnabled public Map<String, Object> values { get; set; }
+    }
+
+    public static Map<String, Object> getAttributeValuesFromJSON(Id xLIId) {
+        SObject xLI = getLineItem(xLIId);
+
+        return getAttributeValuesFromJSON(xLI);
+    }
+
+    public static Map<String, Object> getAttributeValuesFromJSON(SObject xLI) {
+        vlocity_cmt.JSONAttributeSupport jsonSupport = new vlocity_cmt.JSONAttributeSupport();
+        // Read the old speed
+        Map<String, object> inputMap;
+        Map<String, object> outputMap = new Map<String, object>(); 
+        Map<String, object> optionsMap = new Map<String, object>();
+
+        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
+        if (v2Attribute) {
+            Product2 p = (Product2)xLI.getSObject('Product2');
+
+            inputMap = new Map<String, object>{
+                'attributeValuesJSON' => xLI.get('vlocity_cmt__AttributeSelectedValues__c'),
+                'attributeMetadataJSON' => p.vlocity_cmt__AttributeMetadata__c
+            }; 
+        } else {
+            inputMap = new Map<String, object>{
+                'UseDisplayTextForValues' => false,
+                'JSONString' => xLI.get('vlocity_cmt__JSONAttribute__c')
+            }; 
+        }
+
+        jsonSupport.invokeMethod('getAttributeValuesFromJSON', inputMap, outputMap, optionsMap); 
+        Map<String, Object> attrVals = (Map<String, Object>)outputMap.get('attributeCodeToValue');
+        return attrVals;
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static JSONAttribute getJSONAttribute(Id recordId) {
+        JSONAttribute jsonAttrib = new JSONAttribute();
+
+        JSONAttributeSupportEx helper = new JSONAttributeSupportEx();
+        SObject xLI = getLineItem(recordId);
+        jsonAttrib.metadata = helper.getAttributeMetadata(xLI);
+        jsonAttrib.values = getAttributeValuesFromJSON(xLI);
+
+        return jsonAttrib;
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getAttributeValues(Id recordId) {
+        SObject xLI = getLineItem(recordId);
+        return getAttributeValuesFromJSON(xLI);
+    }
 
     public Boolean InvokeMethod(String methodName, Map<String,Object> input, Map<String,Object> output, Map<String,Object> options) {
         return true;
     }
+    
+    private static Boolean isAttributeV2(SObjectType objectType) {
+        Boolean v2Attribute = vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled();
+        if (v2Attribute && (objectType == vlocity_cmt__InventoryItem__c.SObjectType || objectType == vlocity_cmt__FulfilmentRequestLine__c.SObjectType)) {
+            v2Attribute = false;
+        }
 
-    public AttributeMetadata getAttributeMetadata(Id xLIId) {
+        return v2Attribute;
+    }
+
+    private static SObject getLineItem(Id xLIId) {
         SObjectType objectType = xLIId.getSobjectType();
         DescribeSObjectResult objectDesc = objectType.getDescribe();
 
         String query = 'SELECT Id, Product2.vlocity_cmt__JSONAttribute__c, Product2.vlocity_cmt__AttributeMetadata__c, Product2.vlocity_cmt__AttributeDefaultValues__c, vlocity_cmt__JSONAttribute__c, vlocity_cmt__AttributeMetadataChanges__c, vlocity_cmt__AttributeSelectedValues__c FROM ' + objectDesc.getName() + ' WHERE Id=:xLIId';
         System.debug('query: ' + query);
         SObject xLI = Database.query(query);
-        
+
+        return xLI;
+    } 
+
+    public AttributeMetadata getAttributeMetadata(Id xLIId) {
+        SObject xLI = getLineItem(xLIId);
+
         return getAttributeMetadata(xLI);
     }
 
@@ -185,6 +271,8 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
                 }
 
                 AttributeSpecification attrSpec = new AttributeSpecification(attrMapV1);
+                attrSpec.categoryCode = categoryCode;
+                attrSpec.categoryName = category.name;
                 mdAttribute.attributes.put(attrSpec.code, attrSpec);
             }
 
@@ -222,6 +310,8 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
                 System.debug(json.serialize(jsonAttributeDefaultValues));
 
                 AttributeSpecification attrSpec = new AttributeSpecification(attrMapV2, attrChangeV2, attrDefVal);
+                attrSpec.categoryCode = attrCategory.code;
+                attrSpec.categoryName = attrCategory.name;
                 mdAttribute.attributes.put(attrSpec.code, attrSpec);
             }
             mdAttribute.categories.put(attrCategory.code, attrCategory);
