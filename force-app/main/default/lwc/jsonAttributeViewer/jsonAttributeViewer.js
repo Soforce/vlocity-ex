@@ -3,6 +3,9 @@ import { getRecord } from 'lightning/uiRecordApi';
 import LOCALE from '@salesforce/i18n/locale';
 import CURRENCY from '@salesforce/i18n/currency';
 import { updateRecord } from 'lightning/uiRecordApi';
+import { getRecordNotifyChange } from 'lightning/uiRecordApi';
+import { refreshApex } from '@salesforce/apex';
+
 import getJSONAttribute from '@salesforce/apex/JSONAttributeSupportEx.getJSONAttribute';
 import getAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.getAttributeValues';
 import setAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.setAttributeValues';
@@ -233,7 +236,7 @@ export default class JsonAttributeViewer extends LightningElement {
                     this.attributes[i].is_changed = false;
                     this.attributes[i].text_color = 'slds-text-color_default';
                 }
-                
+
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',
@@ -241,6 +244,7 @@ export default class JsonAttributeViewer extends LightningElement {
                         variant: 'success'
                     })
                 );
+                this.attributes = this.attributes.slice();
 
             })
             .catch(error => {
@@ -324,6 +328,8 @@ export default class JsonAttributeViewer extends LightningElement {
                     item.display_value = attribValues[item.code];
                     item.text_color = 'slds-text-color_default';
                 });
+
+                this.attributes = this.attributes.slice();
             })
             .catch((error) => {
                 this.dispatchEvent(
