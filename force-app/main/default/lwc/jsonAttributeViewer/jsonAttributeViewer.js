@@ -5,6 +5,7 @@ import CURRENCY from '@salesforce/i18n/currency';
 import { updateRecord } from 'lightning/uiRecordApi';
 import getJSONAttribute from '@salesforce/apex/JSONAttributeSupportEx.getJSONAttribute';
 import getAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.getAttributeValues';
+import setAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.setAttributeValues';
 
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -216,47 +217,23 @@ export default class JsonAttributeViewer extends LightningElement {
     // }
 
     handleJSONAttributeSaveClick(event) {
+        console.log('handleJSONAttributeSaveClick');
         var attributeVals = {};
         for (var i = 0; i < this.attributes.length; i++) {
-            attributeVals[this.attributes[i].code] = { 
-                "value": this.attributes[i].value,
-                "display_value": this.attributes[i].display_value,
-            };
+            attributeVals[this.attributes[i].code] = this.attributes[i].value;
         }
 
-        var attributesByCategory = JSON.parse(this.jsonAttribute);
-        for (var categoryCode in attributesByCategory) {
-            var myAttributes = attributesByCategory[categoryCode];
-            for (var i = 0; i < myAttributes.length; i++) {
-                var myAttribute = myAttributes[i];
-                var myRuntimeInfo = myAttribute.attributeRunTimeInfo;
-                if (myRuntimeInfo.dataType === "Picklist") {
-                    myRuntimeInfo.selectedItem.value = attributeVals[myAttribute.attributeuniquecode__c].value;
-                    myRuntimeInfo.selectedItem.displayText = attributeVals[myAttribute.attributeuniquecode__c].display_value;
-                } else {
-                    myRuntimeInfo.value = attributeVals[myAttribute.attributeuniquecode__c].value;
-                }        
-            }
-        }
+        const recordInput = {};
+        recordInput['recordId'] = this.recordId;
+        recordInput['values'] = attributeVals;
 
-        var updatedJSON = JSON.stringify(attributesByCategory);
-        console.log(updatedJSON);
-
-        // Create the recordInput object
-        const fields = {};
-        fields['Id'] = this.recordId;
-        fields['vlocity_cmt__JSONAttribute__c'] = updatedJSON; // this.record.fields.vlocity_cmt__JSONAttribute__c.value;
-
-        const recordInput = { fields };
-        updateRecord(recordInput)
-            .then(() => {
-                this.jsonAttribute = updatedJSON;
-                // this.record.fields.vlocity_cmt__JSONAttribute__c.value = updatedJSON;
+        setAttributeValues(recordInput)   
+            .then(() => {     
                 for (var i = 0; i < this.attributes.length; i++) {
                     this.attributes[i].is_changed = false;
                     this.attributes[i].text_color = 'slds-text-color_default';
                 }
-
+                
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',
@@ -264,6 +241,7 @@ export default class JsonAttributeViewer extends LightningElement {
                         variant: 'success'
                     })
                 );
+
             })
             .catch(error => {
                 this.dispatchEvent(
@@ -274,6 +252,65 @@ export default class JsonAttributeViewer extends LightningElement {
                     })
                 );
             });
+
+        // var attributeVals = {};
+        // for (var i = 0; i < this.attributes.length; i++) {
+        //     attributeVals[this.attributes[i].code] = { 
+        //         "value": this.attributes[i].value,
+        //         "display_value": this.attributes[i].display_value,
+        //     };
+        // }
+
+        // var attributesByCategory = JSON.parse(this.jsonAttribute);
+        // for (var categoryCode in attributesByCategory) {
+        //     var myAttributes = attributesByCategory[categoryCode];
+        //     for (var i = 0; i < myAttributes.length; i++) {
+        //         var myAttribute = myAttributes[i];
+        //         var myRuntimeInfo = myAttribute.attributeRunTimeInfo;
+        //         if (myRuntimeInfo.dataType === "Picklist") {
+        //             myRuntimeInfo.selectedItem.value = attributeVals[myAttribute.attributeuniquecode__c].value;
+        //             myRuntimeInfo.selectedItem.displayText = attributeVals[myAttribute.attributeuniquecode__c].display_value;
+        //         } else {
+        //             myRuntimeInfo.value = attributeVals[myAttribute.attributeuniquecode__c].value;
+        //         }        
+        //     }
+        // }
+
+        // var updatedJSON = JSON.stringify(attributesByCategory);
+        // console.log(updatedJSON);
+
+        // // Create the recordInput object
+        // const fields = {};
+        // fields['Id'] = this.recordId;
+        // fields['vlocity_cmt__JSONAttribute__c'] = updatedJSON; // this.record.fields.vlocity_cmt__JSONAttribute__c.value;
+
+        // const recordInput = { fields };
+        // updateRecord(recordInput)
+        //     .then(() => {
+        //         this.jsonAttribute = updatedJSON;
+        //         // this.record.fields.vlocity_cmt__JSONAttribute__c.value = updatedJSON;
+        //         for (var i = 0; i < this.attributes.length; i++) {
+        //             this.attributes[i].is_changed = false;
+        //             this.attributes[i].text_color = 'slds-text-color_default';
+        //         }
+
+        //         this.dispatchEvent(
+        //             new ShowToastEvent({
+        //                 title: 'Success',
+        //                 message: 'JSONAttribute updated',
+        //                 variant: 'success'
+        //             })
+        //         );
+        //     })
+        //     .catch(error => {
+        //         this.dispatchEvent(
+        //             new ShowToastEvent({
+        //                 title: 'Error updating JSONAttribute',
+        //                 message: error.message,
+        //                 variant: 'error'
+        //             })
+        //         );
+        //     });
             
 
     }

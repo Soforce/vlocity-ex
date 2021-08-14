@@ -196,6 +196,23 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         return attrVals;
     }
 
+    public static String setAttributeValuesByJSON(Id xLIId, Map<String, Object> attrVals) {
+        SObject xLI = getLineItem(xLIId);
+
+        return setAttributeValuesByJSON(xLI, attrVals);
+    }
+
+    public static String setAttributeValuesByJSON(SObject xLI, Map<String, Object> attrVals) {
+        JSONAttributeSupportEx jsEx = new JSONAttributeSupportEx();
+        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
+        Product2 p = (Product2)xLI.getSObject('Product2');
+        if (v2Attribute) {
+            return jsEx.setJSONAttributesV2((String)xLI.get('vlocity_cmt__AttributeSelectedValues__c'), (String)xLI.get('vlocity_cmt__AttributeMetadataChanges__c'), p.vlocity_cmt__AttributeMetadata__c, attrVals);
+        } else {
+            return jsEx.setJSONAttributesV1((String)xLI.get('vlocity_cmt__JSONAttribute__c'), p.vlocity_cmt__JSONAttribute__c, attrVals);
+        }
+    }
+
     @AuraEnabled(cacheable=true)
     public static JSONAttribute getJSONAttribute(Id recordId) {
         JSONAttribute jsonAttrib = new JSONAttribute();
@@ -213,6 +230,23 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         SObject xLI = getLineItem(recordId);
         return getAttributeValuesFromJSON(xLI);
     }
+
+    @AuraEnabled(cacheable=false)
+    public static void setAttributeValues(Id recordId, Map<String, Object> values) {
+        System.debug(recordId);
+        System.debug(JSON.serialize(values));
+        SObject xLI = getLineItem(recordId);
+
+        String modifiedJSON = setAttributeValuesByJSON(xLI, values);
+
+        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
+        if (v2Attribute) {
+            xLI.put('vlocity_cmt__AttributeSelectedValues__c', modifiedJSON);
+        } else {
+            xLI.put('vlocity_cmt__JSONAttribute__c', modifiedJSON);
+        }
+        update xLI;
+    }    
 
     public Boolean InvokeMethod(String methodName, Map<String,Object> input, Map<String,Object> output, Map<String,Object> options) {
         return true;
@@ -319,4 +353,65 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
 
         return mdAttribute;
     }
+
+    public String setJSONAttributesV1(String runtimeJSON, String originalJSON, Map<String, Object> attrVals) {
+        List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest> actionRequestsList = new List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest>();
+        for (String attrCode : attrVals.keySet()) {
+            Object attrVal = attrVals.get(attrCode);
+
+            actionRequestsList.add(new vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest(
+                attrCode, 
+                vlocity_cmt.JSONAttributeSupport.ActionType.ASSIGN, 
+                attrVal)
+            );
+        }
+
+        vlocity_cmt.JSONAttributeSupport jsonSupport = new vlocity_cmt.JSONAttributeSupport();
+        Map<String, Object> myInputMap = new Map<String, Object> {
+            'objectSO' => null,
+            'runTimeAttributesJSON' => runtimeJSON,
+            'originalAttributesJSON' => originalJSON,
+            'JSONAttributeActionRequestList' => actionRequestsList
+        };
+        Map<String, Object> myOutputMap = new Map<String, Object>();
+        Map<String, Object> myOptionsMap = new Map<String, Object>();
+
+        jsonSupport.invokeMethod('applyAttributeActions', myInputMap, myOutputMap, myOptionsMap);
+        String modifiedJSON = (String)myOutputMap.get('modifiedJSON');
+
+        return modifiedJSON;
+    }  
+
+    public String setJSONAttributesV2(String runtimeValueJSON, String runtimeMetadataJSON, String originalAttributesJSON, Map<String, Object> attrVals) {
+        Map<String, Object> values = (Map<String, Object>)JSON.deserializeUntyped(runtimeValueJSON);
+        values.putAll(attrVals);
+
+
+        // List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest> actionRequestsList = new List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest>();
+        // for (String attrCode : attrVals.keySet()) {
+        //     Object attrVal = attrVals.get(attrCode);
+
+        //     actionRequestsList.add(new vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest(
+        //         attrCode, 
+        //         vlocity_cmt.JSONAttributeSupport.ActionType.ASSIGN, 
+        //         attrVal)
+        //     );
+        // }
+
+        // vlocity_cmt.JSONAttributeSupport jsonSupport = new vlocity_cmt.JSONAttributeSupport();
+        // Map<String, Object> myInputMap = new Map<String, Object> {
+        //     'objectSO' => null,
+        //     'runTimeAttributesValuesJSON' => runtimeJSON,
+        //     'runTimeAttributesMetadataJSON' => originalJSON,
+        //     'originalAttributesJSON' => '',
+        //     'JSONAttributeActionRequestList' => actionRequestsList
+        // };
+        // Map<String, Object> myOutputMap = new Map<String, Object>();
+        // Map<String, Object> myOptionsMap = new Map<String, Object>();
+
+        // jsonSupport.invokeMethod('applyAttributeActions', myInputMap, myOutputMap, myOptionsMap);
+        // String modifiedJSON = (String)myOutputMap.get('modifiedJSON');
+
+        return JSON.serialize(values);
+    }  
 }
