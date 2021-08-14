@@ -38,6 +38,9 @@ export default class JsonAttributeViewer extends LightningElement {
     // Attribute List
     @track attributes;
     
+    @track sortBy;
+    @track sortDirection;
+
     // Attribute Info
     @track attribute;
     @track attributeValue;
@@ -218,6 +221,31 @@ export default class JsonAttributeViewer extends LightningElement {
     //     else
     //         return 'Record not found';
     // }
+
+    handleSortClick(event) {
+        this.sortBy = event.detail.fieldName;
+        this.sortDirection = event.detail.sortDirection;
+        // console(this.sortBy + ' ' + this.sortDirection);
+        this.sortJsonAttributes(this.sortBy, this.sortDirection);
+    }
+
+    sortJsonAttributes(fieldname, direction) {
+        let parseData = JSON.parse(JSON.stringify(this.attributes));
+        // Return the value stored in the field
+        let keyValue = (a) => {
+            return a[fieldname];
+        };
+        // cheking reverse direction
+        let isReverse = direction === 'asc' ? 1: -1;
+        // sorting data
+        parseData.sort((x, y) => {
+            x = keyValue(x) ? keyValue(x) : ''; // handling null values
+            y = keyValue(y) ? keyValue(y) : '';
+            // sorting values based on direction
+            return isReverse * ((x > y) - (y > x));
+        });
+        this.attributes = parseData;
+    }    
 
     handleJSONAttributeSaveClick(event) {
         console.log('handleJSONAttributeSaveClick');

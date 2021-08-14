@@ -9,7 +9,12 @@
                         <lightning-button label="Copy JSON" icon-name="utility:copy" onclick={handleJSONAttributeCopyClick}></lightning-button>
                     </lightning-button-group>
                 </div>
-                <lightning-datatable key-field="code" data={attributes} columns={columns} onrowaction={handleAttributeRowAction} hide-checkbox-column>
+                <!-- sldsValidatorIgnoreNextLine -->
+                <lightning-datatable key-field="code" data={attributes} columns={columns} hide-checkbox-column 
+                    sorted-by={sortBy}
+                    sorted-direction={sortDirection}
+                    onsort={handleSortClick}
+                    onrowaction={handleAttributeRowAction} >
                 </lightning-datatable>
             </template>
         </div>
