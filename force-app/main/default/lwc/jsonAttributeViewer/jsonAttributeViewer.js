@@ -1,10 +1,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import { getRecord } from 'lightning/uiRecordApi';
 import LOCALE from '@salesforce/i18n/locale';
 import CURRENCY from '@salesforce/i18n/currency';
-import { updateRecord } from 'lightning/uiRecordApi';
-import { getRecordNotifyChange } from 'lightning/uiRecordApi';
-import { refreshApex } from '@salesforce/apex';
+
 
 import getJSONAttribute from '@salesforce/apex/JSONAttributeSupportEx.getJSONAttribute';
 import getAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.getAttributeValues';
@@ -31,7 +28,6 @@ const columns = [
 
 export default class JsonAttributeViewer extends LightningElement {
     @api recordId;
-    @api objectApiName;
 
     // @track record;
     @track jsonAttributeField;
@@ -44,44 +40,27 @@ export default class JsonAttributeViewer extends LightningElement {
     // Attribute Info
     @track attribute;
     @track attributeValue;
-    @track attributeLabel;
 
     @track columns = columns;
  
     @track viewerCardTitle = 'JSONAttribute Viewer';
 
-    @track jsonAttribute;
-
     connectedCallback() {
-        if(this.objectApiName==='QuoteLineItem') {
-            this.jsonAttributeField = 'QuoteLineItem.vlocity_cmt__JSONAttribute__c';
-        } else if(this.objectApiName==='OpportunityLineItem') {
-            this.jsonAttributeField = 'OpportunityLineItem.vlocity_cmt__JSONAttribute__c';
-        } else if(this.objectApiName==='OrderItem') {
-            this.jsonAttributeField = 'OrderItem.vlocity_cmt__JSONAttribute__c';
-        } else if (this.objectApiName === 'Asset')   {
-            this.jsonAttributeField = 'Asset.vlocity_cmt__JSONAttribute__c';
-        } else if (this.objectApiName === 'vlocity_cmt__FulfilmentRequestLine__c')   {
-            this.jsonAttributeField = 'vlocity_cmt__FulfilmentRequestLine__c.vlocity_cmt__JSONAttribute__c';
-        } else if (this.objectApiName === 'vlocity_cmt__InventoryItem__c')   {
-            this.jsonAttributeField = 'vlocity_cmt__InventoryItem__c.vlocity_cmt__JSONAttribute__c';
-        }
-        
     }
 
+    /**
+     * @description wired Apex method to load JSON attributes for the given xLI by Id
+     */
     @wire(getJSONAttribute, { recordId: '$recordId'})
-    getJSONAttributeEx( { error, data }) {
-
-        var number = 123456.78;
-        var formattedNumber = new Intl.NumberFormat(LOCALE, {
-            style: 'currency',
-            currency: CURRENCY,
-            currencyDisplay: 'symbol'
-        }).format(number);
-        console.log(formattedNumber);
-
+    getJSONAttribute( { error, data }) {
         if (error) {
-            console.log('Error');
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error loading JSONAttributes',
+                    message: error.message,
+                    variant: 'error'
+                })
+            );            
         } else {
             if (data) {
                 console.log(data);
@@ -91,16 +70,15 @@ export default class JsonAttributeViewer extends LightningElement {
                 console.log(values);
                 this.attributes = [];
                 for (const [key, myAttribute] of Object.entries(metadata.attributes)) {
-                    // console.log(`${key}: ${value}`);
-
                     var attribute = {
                         name: myAttribute.label,
                         code: myAttribute.code,
                         category_name: myAttribute.categoryName,
                         category_code: myAttribute.categoryCode,
-                        // active: myAttribute.isactive__c,
                         readonly: myAttribute.readonly,
                         text_color: 'slds-text-color_default',
+                        valueType:  myAttribute.valueType,
+                        // this following properties are used to render UI input element
                         is_changed: false,
                         is_picklist: myAttribute.valueType == 'picklist',
                         is_input: myAttribute.valueType == 'text',
@@ -110,11 +88,12 @@ export default class JsonAttributeViewer extends LightningElement {
                         is_currency: myAttribute.valueType == 'currency',
                         is_percent: myAttribute.valueType == 'percent',
                         is_checkbox: myAttribute.valueType == 'checkbox',
+                        // values
                         value: values[key],
-                        display_value: values[key],
+                        display_value: values[key], // formatted value for display purpose
                     };         
                     
-                    console.log(attribute);
+                    // Populate the picklist options
                     if (attribute.is_picklist) {
                         attribute.options = [];
 
@@ -129,21 +108,10 @@ export default class JsonAttributeViewer extends LightningElement {
                                 attribute.display_value = item.label;
                             }
                         });
-                    } else {
-                        attribute.display_value = this.formatAttributeValue(attribute);
-                    }
-                    // } else if (attribute.is_datetime) {
-                    //     attribute.display_value = new Date(attribute.value).toLocaleString();
-                    // } else if (attribute.is_date) {
-                    //     attribute.display_value = new Date(attribute.value).toLocaleDateString();
-                    // } else if (attribute.is_number) {
-                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, { style: 'decimal'}).format(new Number(attribute.value));
-                    // } else if (attribute.is_currency) {
-                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY, currencyDisplay: 'symbol'}).format(new Number(attribute.value));
-                    // } else if (attribute.is_percent) {
-                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, {style: 'percent'}).format(new Number(attribute.value));
-                    // }
+                    } 
                     
+                    attribute.display_value = this.formatAttributeValue(attribute.value, attribute.valueType, attribute.options);
+                     
                     this.attributes.push(attribute);
                 }
             }
@@ -151,123 +119,53 @@ export default class JsonAttributeViewer extends LightningElement {
         }
     }
 
-    // @wire(getRecord, { recordId: '$recordId', fields: '$jsonAttributeField' })
-    // getJSONAttribute( { error, data }) {
-    //     if (error) {
-    //         // TODO
-    //         console.log('Error');
-    //     } else if (data) {
-    //         // this.record = data;
-    //         this.jsonAttribute = data.fields.vlocity_cmt__JSONAttribute__c.value;
-    //         var attributesByCategory = JSON.parse(this.jsonAttribute);
-    //         //debugger;
-    //         this.attributes = [];
-    //         for (var categoryCode in attributesByCategory) {
-    //             var myAttributes = attributesByCategory[categoryCode];
-    //             for (var i = 0; i < myAttributes.length; i++) {
-    //                 var myAttribute = myAttributes[i];
-
-    //                 var attribute = {
-    //                     name: myAttribute.attributedisplayname__c,
-    //                     code: myAttribute.attributeuniquecode__c,
-    //                     category_name: myAttribute.categoryname__c,
-    //                     category_code: myAttribute.categorycode__c,
-    //                     active: myAttribute.isactive__c,
-    //                     readonly: myAttribute.isreadonly__c,
-    //                     text_color: 'slds-text-color_default',
-    //                     is_changed: false,
-    //                     is_picklist: false,
-    //                     is_input: false,
-    //                     is_number: false,
-    //                     is_checkbox: false,
-    //                     is_combobox: false,
-    //                 };
-
-    //                 var myRuntimeInfo = myAttribute.attributeRunTimeInfo;
-    //                 attribute.data_type = myRuntimeInfo.dataType;
-
-    //                 attribute.value = myRuntimeInfo.value;
-    //                 attribute.display_value = attribute.value == null ? "" : attribute.value + ""; 
-                    
-    //                 if (myRuntimeInfo.dataType === "Currency" ||
-    //                     myRuntimeInfo.dataType === "Percent" ||
-    //                     myRuntimeInfo.dataType === "Number") {
-    //                     attribute.input_type = 'number';
-    //                     attribute.is_number = true;
-    //                 } else if (myRuntimeInfo.dataType === "Text" || 
-    //                     myRuntimeInfo.dataType === "Lookup") {
-    //                     attribute.input_type = 'text';
-    //                     attribute.is_input = true;
-    //                 } else if (myRuntimeInfo.dataType === "Checkbox") {
-    //                     attribute.input_type = 'checkbox';                        
-    //                     attribute.is_checkbox = true;
-    //                 } else if (myRuntimeInfo.dataType === "Date") {
-    //                     attribute.input_type = 'date';
-    //                     attribute.is_input = true;
-    //                 } else if (myRuntimeInfo.dataType === "Datetime") {
-    //                     attribute.input_type = 'datetime';
-    //                     attribute.is_input = true;
-    //                 } else if (myRuntimeInfo.dataType === "Picklist") {
-    //                     attribute.is_combobox = true;
-
-    //                     attribute.value = Object.keys(myRuntimeInfo.selectedItem).length === 0 ? null : myRuntimeInfo.selectedItem.value;
-    //                     attribute.display_value = Object.keys(myRuntimeInfo.selectedItem).length === 0 ? null : myRuntimeInfo.selectedItem.displayText;
-    //                     attribute.options = [];
-    //                     for (var j = 0; j < myRuntimeInfo.values.length; j++) {
-    //                         attribute.options.push( {
-    //                             label: myRuntimeInfo.values[j].displayText,
-    //                             value: myRuntimeInfo.values[j].value
-    //                         });
-    //                     }
-                        
-    //                 } else if (myRuntimeInfo.dataType === "Multi Picklist") {
-    //                     attribute.input_type = 'text';
-    //                     attribute.is_input = true;
-    //                 } else {
-    //                     attribute.input_type = 'text';
-    //                     attribute.is_input = true;
-    //                 }
-
-    //                 this.attributes.push(attribute);
-    //             }
-
-    //         }
-
-    //         console.log(this.attributes);
-    //     }
-    // }
-
-    // get jsonAttribute() {
-    //     if (this.record)
-    //         return this.record.fields.vlocity_cmt__JSONAttribute__c.value;
-    //     else
-    //         return 'Record not found';
-    // }
-
-    formatAttributeValue(attribute) {
-        if (attribute.is_datetime) {
-            return new Date(attribute.value).toLocaleString();
-        } else if (attribute.is_date) {
-            return new Date(attribute.value).toLocaleDateString();
-        } else if (attribute.is_number) {
-            return new Intl.NumberFormat(LOCALE, { style: 'decimal'}).format(new Number(attribute.value));
-        } else if (attribute.is_currency) {
-            return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY, currencyDisplay: 'symbol'}).format(new Number(attribute.value));
-        } else if (attribute.is_percent) {
-            return new Intl.NumberFormat(LOCALE, {style: 'decimal'}).format(new Number(attribute.value));
-            // return new Intl.NumberFormat(LOCALE, {style: 'percent'}).format(new Number(attribute.value));
+    /**
+     * 
+     * @param {*} value attribute value
+     * @param {*} valueType attribute value data type
+     * @returns formatted display value
+     */
+    formatAttributeValue(value, valueType, options) {
+        if (valueType == 'datetime') {
+            return new Date(value).toLocaleString();
+        } else if (valueType == 'date') {
+            return new Date(value).toLocaleDateString();
+        } else if (valueType == 'number') {
+            return new Intl.NumberFormat(LOCALE, { style: 'decimal'}).format(new Number(value));
+        } else if (valueType == 'percent') {
+            // CPQ engine does not use native percent control 
+            return new Intl.NumberFormat(LOCALE, {style: 'decimal'}).format(new Number(value));
+            // return new Intl.NumberFormat(LOCALE, {style: 'percent'}).format(new Number(value));
+        } else if (valueType == 'currency') {
+            return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY, currencyDisplay: 'symbol'}).format(new Number(value));
+        } else if (valueType == 'picklist') {
+            var dispVal = value;
+            options.forEach(item => {
+                if (item.value == value) {
+                    dispVal = item.label;
+                }
+            });           
+            return dispVal;
         } else {
-            return attribute.value;
+            return value;
         }     
     }
 
+    /**
+     * 
+     * @param {*} event 
+     */
     handleSortClick(event) {
         this.sortBy = event.detail.fieldName;
         this.sortDirection = event.detail.sortDirection;
-        // console(this.sortBy + ' ' + this.sortDirection);
         this.sortJsonAttributes(this.sortBy, this.sortDirection);
     }
 
+    /**
+     * 
+     * @param {*} fieldname sort field name
+     * @param {*} direction sort direction
+     */
     sortJsonAttributes(fieldname, direction) {
         let parseData = JSON.parse(JSON.stringify(this.attributes));
         // Return the value stored in the field
@@ -286,8 +184,12 @@ export default class JsonAttributeViewer extends LightningElement {
         this.attributes = parseData;
     }    
 
+    /**
+     * 
+     * @param {*} event 
+     * @description save the JSON attribute
+     */
     handleJSONAttributeSaveClick(event) {
-        console.log('handleJSONAttributeSaveClick');
         var attributeVals = {};
         for (var i = 0; i < this.attributes.length; i++) {
             attributeVals[this.attributes[i].code] = this.attributes[i].value;
@@ -323,80 +225,32 @@ export default class JsonAttributeViewer extends LightningElement {
                     })
                 );
             });
-
-        // var attributeVals = {};
-        // for (var i = 0; i < this.attributes.length; i++) {
-        //     attributeVals[this.attributes[i].code] = { 
-        //         "value": this.attributes[i].value,
-        //         "display_value": this.attributes[i].display_value,
-        //     };
-        // }
-
-        // var attributesByCategory = JSON.parse(this.jsonAttribute);
-        // for (var categoryCode in attributesByCategory) {
-        //     var myAttributes = attributesByCategory[categoryCode];
-        //     for (var i = 0; i < myAttributes.length; i++) {
-        //         var myAttribute = myAttributes[i];
-        //         var myRuntimeInfo = myAttribute.attributeRunTimeInfo;
-        //         if (myRuntimeInfo.dataType === "Picklist") {
-        //             myRuntimeInfo.selectedItem.value = attributeVals[myAttribute.attributeuniquecode__c].value;
-        //             myRuntimeInfo.selectedItem.displayText = attributeVals[myAttribute.attributeuniquecode__c].display_value;
-        //         } else {
-        //             myRuntimeInfo.value = attributeVals[myAttribute.attributeuniquecode__c].value;
-        //         }        
-        //     }
-        // }
-
-        // var updatedJSON = JSON.stringify(attributesByCategory);
-        // console.log(updatedJSON);
-
-        // // Create the recordInput object
-        // const fields = {};
-        // fields['Id'] = this.recordId;
-        // fields['vlocity_cmt__JSONAttribute__c'] = updatedJSON; // this.record.fields.vlocity_cmt__JSONAttribute__c.value;
-
-        // const recordInput = { fields };
-        // updateRecord(recordInput)
-        //     .then(() => {
-        //         this.jsonAttribute = updatedJSON;
-        //         // this.record.fields.vlocity_cmt__JSONAttribute__c.value = updatedJSON;
-        //         for (var i = 0; i < this.attributes.length; i++) {
-        //             this.attributes[i].is_changed = false;
-        //             this.attributes[i].text_color = 'slds-text-color_default';
-        //         }
-
-        //         this.dispatchEvent(
-        //             new ShowToastEvent({
-        //                 title: 'Success',
-        //                 message: 'JSONAttribute updated',
-        //                 variant: 'success'
-        //             })
-        //         );
-        //     })
-        //     .catch(error => {
-        //         this.dispatchEvent(
-        //             new ShowToastEvent({
-        //                 title: 'Error updating JSONAttribute',
-        //                 message: error.message,
-        //                 variant: 'error'
-        //             })
-        //         );
-        //     });
-            
-
     }
 
+    /**
+     * 
+     * @param {*} event 
+     * @description refresh the attribute values from server side
+     */
     handleJSONAttributeRefreshClick(event) {
         getAttributeValues({ recordId: this.recordId } )
             .then((attribValues) => {
                 console.log(attribValues);
                 this.attributes.forEach(item => {
                     item.value = attribValues[item.code];
-                    item.display_value = attribValues[item.code];
+                    // item.display_value = attribValues[item.code];
+                    item.display_value = this.formatAttributeValue(item.value, item.valueType, item.options);
                     item.text_color = 'slds-text-color_default';
                 });
 
                 this.attributes = this.attributes.slice();
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'JSONAttribute has been refreshed.',
+                        variant: 'success'
+                    })
+                );                
             })
             .catch((error) => {
                 this.dispatchEvent(
@@ -408,57 +262,16 @@ export default class JsonAttributeViewer extends LightningElement {
                 );
 
             });
-        // // Rebuild the this.attributes to force a datatable refresh
-        // this.attributes = JSON.parse(JSON.stringify(this.attributes));
-
-        // var attributeVals = {};
-        // var attributesByCategory = JSON.parse(this.jsonAttribute);
-        // for (var categoryCode in attributesByCategory) {
-        //     var myAttributes = attributesByCategory[categoryCode];
-        //     for (var i = 0; i < myAttributes.length; i++) {
-        //         var myAttribute = myAttributes[i];
-        //         var myRuntimeInfo = myAttribute.attributeRunTimeInfo;
-        //         if (myRuntimeInfo.dataType === "Picklist") {
-        //             attributeVals[myAttribute.attributeuniquecode__c] = Object.keys(myRuntimeInfo.selectedItem).length === 0 ? null : myRuntimeInfo.selectedItem.displayText;
-        //         } else {
-        //             attributeVals[myAttribute.attributeuniquecode__c] = myRuntimeInfo.value;
-        //         }         
-        //     }
-        // }
-
-        // for (var i = 0; i < this.attributes.length; i++) {
-        //     this.attributes[i].value = attributeVals[this.attributes[i].code];
-        //     this.attributes[i].display_value = this.attributes[i].display_value;
-        //     this.attributes[i].is_changed = false;
-        //     this.attributes[i].text_color = 'slds-text-color_default';
-        // }
     }
 
-    handleJSONAttributeCopyClick(event) {
-        var inputEle = document.createElement("input");
-
-        //set the value atrribute
-        inputEle.setAttribute("value", this.jsonAttribute);
-        //append element to document body
-        document.body.appendChild(inputEle);
-
-        // selects all the text  in an < input > element that includes a text field.
-
-        inputEle.select();
-
-        document.execCommand("copy");
-    }
-
+    /**
+     * 
+     * @param {*} event 
+     */
     handleAttribueValueChange(event) {
-        if (event.target.type) {
-            console.log('Has Type');
-        } else {
-            console.log('No Type');
-        }
         if (typeof(event.target.type) === 'undefined') {
             if (event.target.options) {
                 this.attributeValue = event.target.value;
-                this.attributeLabel = event.target.options.find(opt => opt.value === event.detail.value).label;
             }
         } else {
             if (event.target.type === 'checkbox') {
@@ -466,16 +279,16 @@ export default class JsonAttributeViewer extends LightningElement {
             } else {
                 this.attributeValue = event.target.value;
             }
-            this.attributeLabel = this.attributeValue + "";
         }
     }
 
+    /**
+     * 
+     * @param {*} event 
+     */
     handleAttributeUpdateClick(event) {
         this.attribute.value = this.attributeValue;
-        this.attribute.display_value = this.formatAttributeValue(this.attribute);
-        // if (event.target.type === 'combobox') {
-        //     this.attribute.display_value = event.target.options.find(opt => opt.value === event.detail.value).label;
-        // }
+        this.attribute.display_value = this.formatAttributeValue(this.attribute.value, this.attribute.valueType, this.attribute.options);
 
         this.attribute.is_changed = true;
         this.attribute.text_color = 'slds-text-color_error';
@@ -492,20 +305,8 @@ export default class JsonAttributeViewer extends LightningElement {
         const actionName = event.detail.action.name;
         this.attribute = event.detail.row;
         this.attributeValue = this.attribute.value;
-        this.attributeLabel = this.attribute.display_value;
-
-        // console.log(this.attribute);
 
         this.viewerCardTitle = 'Edit "' + this.attribute.name + '"';
 
-        // switch (actionName) {
-        //     case 'delete':
-        //         // alert('delete');
-        //         break;
-        //     case 'show_details':
-        //         // alert('details');
-        //         break;
-        //     default:
-        // }
     }
 }

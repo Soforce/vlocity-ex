@@ -6,7 +6,9 @@
                     <lightning-button-group class="slds-var-m-bottom_medium ">
                         <lightning-button label="Save" icon-name="utility:save" onclick={handleJSONAttributeSaveClick}></lightning-button>
                         <lightning-button label="Refresh" icon-name="utility:refresh" onclick={handleJSONAttributeRefreshClick}></lightning-button>
+                        <!--
                         <lightning-button label="Copy JSON" icon-name="utility:copy" onclick={handleJSONAttributeCopyClick}></lightning-button>
+                        -->
                     </lightning-button-group>
                 </div>
                 <!-- sldsValidatorIgnoreNextLine -->
@@ -71,13 +73,10 @@
                                     </lightning-input>
                                 </div>
                                 <div class="slds-form-element slds-form-element_horizontal">
-                                    <lightning-input disabled label="Data Type" value={attribute.data_type} class="slds-truncate" title={attribute.data_type}>
+                                    <lightning-input disabled label="Data Type" value={attribute.valueType} class="slds-truncate" title={attribute.valueType}>
                                     </lightning-input>
                                 </div>
-                                <div class="slds-form-element slds-form-element_horizontal">
-                                    <lightning-input disabled type="Checkbox" label="Is Active" checked={attribute.active} class="slds-truncate" title={attribute.active}>
-                                    </lightning-input>
-                                </div>
+
                                 <div class="slds-form-element slds-form-element_horizontal">
                                     <lightning-input disabled type="Checkbox" label="Is Readonly" checked={attribute.readonly} class="slds-truncate" title={attribute.readonly}>
                                     </lightning-input>
