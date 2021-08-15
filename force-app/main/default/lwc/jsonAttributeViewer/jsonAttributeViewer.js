@@ -96,6 +96,7 @@ export default class JsonAttributeViewer extends LightningElement {
                     // Populate the picklist options
                     if (attribute.is_picklist) {
                         attribute.options = [];
+                        attribute.options.push ( { label: '', value: null });
 
                         myAttribute.values.forEach(item => {
                             // console.log(item);
@@ -126,6 +127,8 @@ export default class JsonAttributeViewer extends LightningElement {
      * @returns formatted display value
      */
     formatAttributeValue(value, valueType, options) {
+        if (value == null || value == '') return '';
+
         if (valueType == 'datetime') {
             return new Date(value).toLocaleString();
         } else if (valueType == 'date') {
