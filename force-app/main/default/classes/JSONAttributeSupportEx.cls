@@ -178,22 +178,26 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
 
         Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
         if (v2Attribute) {
-            Product2 p = (Product2)xLI.getSObject('Product2');
+            String values = (String)xLI.get('vlocity_cmt__AttributeSelectedValues__c');
+            return (Map<String, Object>)JSON.deserializeUntyped(values);
+            // Product2 p = (Product2)xLI.getSObject('Product2');
 
-            inputMap = new Map<String, object>{
-                'attributeValuesJSON' => xLI.get('vlocity_cmt__AttributeSelectedValues__c'),
-                'attributeMetadataJSON' => p.vlocity_cmt__AttributeMetadata__c
-            }; 
+            // inputMap = new Map<String, object>{
+            //     'attributeValuesJSON' => xLI.get('vlocity_cmt__AttributeSelectedValues__c'),
+            //     'attributeMetadataJSON' => p.vlocity_cmt__AttributeMetadata__c
+            // }; 
         } else {
             inputMap = new Map<String, object>{
                 'UseDisplayTextForValues' => false,
                 'JSONString' => xLI.get('vlocity_cmt__JSONAttribute__c')
             }; 
+            jsonSupport.invokeMethod('getAttributeValuesFromJSON', inputMap, outputMap, optionsMap); 
+            System.debug(JSON.serialize(outputMap));
+            return (Map<String, Object>)outputMap.get('attributeCodeToValue');
         }
 
-        jsonSupport.invokeMethod('getAttributeValuesFromJSON', inputMap, outputMap, optionsMap); 
-        Map<String, Object> attrVals = (Map<String, Object>)outputMap.get('attributeCodeToValue');
-        return attrVals;
+
+        // return attrVals;
     }
 
     public static String setAttributeValuesByJSON(Id xLIId, Map<String, Object> attrVals) {
@@ -221,6 +225,8 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         SObject xLI = getLineItem(recordId);
         jsonAttrib.metadata = helper.getAttributeMetadata(xLI);
         jsonAttrib.values = getAttributeValuesFromJSON(xLI);
+
+        System.debug(JSON.serialize(jsonAttrib));
 
         return jsonAttrib;
     }

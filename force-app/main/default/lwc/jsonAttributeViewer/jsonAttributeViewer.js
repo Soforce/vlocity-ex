@@ -71,6 +71,15 @@ export default class JsonAttributeViewer extends LightningElement {
 
     @wire(getJSONAttribute, { recordId: '$recordId'})
     getJSONAttributeEx( { error, data }) {
+
+        var number = 123456.78;
+        var formattedNumber = new Intl.NumberFormat(LOCALE, {
+            style: 'currency',
+            currency: CURRENCY,
+            currencyDisplay: 'symbol'
+        }).format(number);
+        console.log(formattedNumber);
+
         if (error) {
             console.log('Error');
         } else {
@@ -120,7 +129,20 @@ export default class JsonAttributeViewer extends LightningElement {
                                 attribute.display_value = item.label;
                             }
                         });
-                    } 
+                    } else {
+                        attribute.display_value = this.formatAttributeValue(attribute);
+                    }
+                    // } else if (attribute.is_datetime) {
+                    //     attribute.display_value = new Date(attribute.value).toLocaleString();
+                    // } else if (attribute.is_date) {
+                    //     attribute.display_value = new Date(attribute.value).toLocaleDateString();
+                    // } else if (attribute.is_number) {
+                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, { style: 'decimal'}).format(new Number(attribute.value));
+                    // } else if (attribute.is_currency) {
+                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY, currencyDisplay: 'symbol'}).format(new Number(attribute.value));
+                    // } else if (attribute.is_percent) {
+                    //     attribute.display_value = new Intl.NumberFormat(LOCALE, {style: 'percent'}).format(new Number(attribute.value));
+                    // }
                     
                     this.attributes.push(attribute);
                 }
@@ -221,6 +243,23 @@ export default class JsonAttributeViewer extends LightningElement {
     //     else
     //         return 'Record not found';
     // }
+
+    formatAttributeValue(attribute) {
+        if (attribute.is_datetime) {
+            return new Date(attribute.value).toLocaleString();
+        } else if (attribute.is_date) {
+            return new Date(attribute.value).toLocaleDateString();
+        } else if (attribute.is_number) {
+            return new Intl.NumberFormat(LOCALE, { style: 'decimal'}).format(new Number(attribute.value));
+        } else if (attribute.is_currency) {
+            return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY, currencyDisplay: 'symbol'}).format(new Number(attribute.value));
+        } else if (attribute.is_percent) {
+            return new Intl.NumberFormat(LOCALE, {style: 'decimal'}).format(new Number(attribute.value));
+            // return new Intl.NumberFormat(LOCALE, {style: 'percent'}).format(new Number(attribute.value));
+        } else {
+            return attribute.value;
+        }     
+    }
 
     handleSortClick(event) {
         this.sortBy = event.detail.fieldName;
@@ -433,7 +472,7 @@ export default class JsonAttributeViewer extends LightningElement {
 
     handleAttributeUpdateClick(event) {
         this.attribute.value = this.attributeValue;
-        this.attribute.display_value = this.attributeLabel;
+        this.attribute.display_value = this.formatAttributeValue(this.attribute);
         // if (event.target.type === 'combobox') {
         //     this.attribute.display_value = event.target.options.find(opt => opt.value === event.detail.value).label;
         // }
@@ -454,6 +493,8 @@ export default class JsonAttributeViewer extends LightningElement {
         this.attribute = event.detail.row;
         this.attributeValue = this.attribute.value;
         this.attributeLabel = this.attribute.display_value;
+
+        // console.log(this.attribute);
 
         this.viewerCardTitle = 'Edit "' + this.attribute.name + '"';
 

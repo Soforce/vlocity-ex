@@ -27,7 +27,7 @@
                     <lightning-input type="date" label={attribute.name} value={attribute.value} name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
                 </template>
                 <template if:true={attribute.is_datetime}>
-                    <lightning-input type="datetime" label={attribute.name} value={attribute.value} name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+                    <lightning-input type="datetime" time-style="medium" label={attribute.name} value={attribute.value} name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
                 </template>
                 <template if:true={attribute.is_number}>
                     <lightning-input label={attribute.name} value={attribute.value} type="number" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
@@ -36,7 +36,10 @@
                     <lightning-input label={attribute.name} value={attribute.value} type="number" formatter="currency" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
                 </template>
                 <template if:true={attribute.is_percent}>
-                    <lightning-input label={attribute.name} value={attribute.value} type="number" formatter="percent" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+                    <lightning-input label={attribute.name} value={attribute.value} type="number" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+<!--                    
+                    <lightning-input label={attribute.name} value={attribute.value} type="number" formatter="percent" step=".01" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
+-->
                 </template>
                 <template if:true={attribute.is_checkbox}>
                     <lightning-input label={attribute.name} checked={attribute.value} type="checkbox" name="inputAttributeValue" onchange={handleAttribueValueChange}></lightning-input>
