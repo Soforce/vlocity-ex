@@ -1,6 +1,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import LOCALE from '@salesforce/i18n/locale';
 import CURRENCY from '@salesforce/i18n/currency';
+import { refreshApex } from '@salesforce/apex';
 
 
 import getJSONAttribute from '@salesforce/apex/JSONAttributeSupportEx.getJSONAttribute';
@@ -28,9 +29,10 @@ const columns = [
 
 export default class JsonAttributeViewer extends LightningElement {
     @api recordId;
+    // wiredAttributeData;
 
     // @track record;
-    @track jsonAttributeField;
+    // @track jsonAttributeField;
     // Attribute List
     @track attributes;
     
@@ -63,6 +65,8 @@ export default class JsonAttributeViewer extends LightningElement {
             );            
         } else {
             if (data) {
+                // this.wiredAttributeData = data;
+
                 console.log(data);
                 var metadata = data.metadata;
                 var values = data.values;
@@ -236,6 +240,7 @@ export default class JsonAttributeViewer extends LightningElement {
      * @description refresh the attribute values from server side
      */
     handleJSONAttributeRefreshClick(event) {
+        
         getAttributeValues({ recordId: this.recordId } )
             .then((attribValues) => {
                 console.log(attribValues);
@@ -247,6 +252,8 @@ export default class JsonAttributeViewer extends LightningElement {
                 });
 
                 this.attributes = this.attributes.slice();
+                // refreshApex(this.wiredAttributeData);
+
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Success',

@@ -257,13 +257,13 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         return jsonAttrib;
     }
 
-    @AuraEnabled(cacheable=false)
+    @AuraEnabled
     public static Map<String, Object> getAttributeValues(Id recordId) {
         SObject xLI = getLineItem(recordId);
         return getAttributeValuesFromJSON(xLI);
     }
 
-    @AuraEnabled(cacheable=false)
+    @AuraEnabled
     public static void setAttributeValues(Id recordId, Map<String, Object> values) {
         System.debug(recordId);
         System.debug(JSON.serialize(values));
