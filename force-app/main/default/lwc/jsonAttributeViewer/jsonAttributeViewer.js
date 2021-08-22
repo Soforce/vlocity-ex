@@ -1,12 +1,11 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import LOCALE from '@salesforce/i18n/locale';
 import CURRENCY from '@salesforce/i18n/currency';
-import { refreshApex } from '@salesforce/apex';
 
 
-import getJSONAttribute from '@salesforce/apex/JSONAttributeSupportEx.getJSONAttribute';
-import getAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.getAttributeValues';
-import setAttributeValues from '@salesforce/apex/JSONAttributeSupportEx.setAttributeValues';
+import getJSONAttribute from '@salesforce/apex/vJsonAttributeViewerController.getJSONAttribute';
+import getAttributeValues from '@salesforce/apex/vJsonAttributeViewerController.getAttributeValues';
+import setAttributeValues from '@salesforce/apex/vJsonAttributeViewerController.setAttributeValues';
 
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -131,10 +130,14 @@ export default class JsonAttributeViewer extends LightningElement {
      * @returns formatted display value
      */
     formatAttributeValue(value, valueType, options) {
-        if (value == null || value == '') return '';
+        if (value == null || value === '') {
+            return '';
+        }
 
         if (valueType == 'datetime') {
             return new Date(value).toLocaleString();
+        } else if (valueType == 'checkbox') {
+            return value.toString();
         } else if (valueType == 'date') {
             return new Date(value).toLocaleDateString();
         } else if (valueType == 'number') {
@@ -252,7 +255,6 @@ export default class JsonAttributeViewer extends LightningElement {
                 });
 
                 this.attributes = this.attributes.slice();
-                // refreshApex(this.wiredAttributeData);
 
                 this.dispatchEvent(
                     new ShowToastEvent({

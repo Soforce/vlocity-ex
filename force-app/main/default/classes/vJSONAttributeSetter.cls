@@ -46,7 +46,7 @@ public with sharing class vJSONAttributeSetter {
                     attribValMap.put(attribValue.name, attribValue.value);
                 }
     
-                String modifiedJSON = vHelper.setJSONAttributes((String)item.get('vlocity_cmt__JSONAttribute__c'), '{}', attribValMap);
+                String modifiedJSON = vHelper.setJSONAttributes((String)item.get('vlocity_cmt__JSONAttribute__c'), attribValMap);
                 item.put('vlocity_cmt__JSONAttribute__c', modifiedJSON);
 
                 vLogger.writeVar('modifiedJSON', modifiedJSON);

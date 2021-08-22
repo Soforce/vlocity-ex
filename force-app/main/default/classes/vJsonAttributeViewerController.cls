@@ -1,10 +1,10 @@
 /**
  * @description extension of the OOTB JSONAttributeSupport class
  *   - applyAttributeActions 
- *   - getAttributeValuesFromJSON
+ *   - getJSONAttributeValues
  *   - getAttributeValues 
  */
-public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityOpenInterface {
+public with sharing class vJsonAttributeViewerController implements vlocity_cmt.VlocityOpenInterface {
     public class AttributeCategory {
         @AuraEnabled public Id id;
         @AuraEnabled public String code;
@@ -74,7 +74,8 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
                     Map<String, Object> valMap = (Map<String, Object>)valueObj;
                     AttributeSpecValue val = new AttributeSpecValue();
                     val.value = valMap.get('value');
-                    // val.label = (String)valMap.get('label');
+                    // val.label = val.value; // v1 does not have a label?
+                    val.label = (String)valMap.get('displayText');
                     val.displaySequence = Integer.valueOf(valMap.get('sequence'));
                     val.defaultSelected = false;
                     if (defValObj != null) {
@@ -166,91 +167,58 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         @AuraEnabled public Map<String, Object> values { get; set; }
     }
 
-    public static Map<String, Object> getAttributeValuesFromJSON(Id xLIId) {
+    
+    public static String getProduct2ReferenceName(SObjectType objectType) {
+        if (objectType == vlocity_cmt__InventoryItem__c.SObjectType) return 'vlocity_cmt__ProductId__r';
+        else if (objectType == vlocity_cmt__FulfilmentRequestLine__c.SObjectType) return 'vlocity_cmt__Product2Id__r';
+        else return 'Product2';
+    }
+
+    public static Map<String, Object> getJSONAttributeValues(Id xLIId) {
         SObject xLI = getLineItem(xLIId);
 
-        return getAttributeValuesFromJSON(xLI);
+        return getJSONAttributeValues(xLI);
     }
 
-    public static Map<String, Object> getAttributeValuesFromJSON(SObject xLI) {
-        vlocity_cmt.JSONAttributeSupport jsonSupport = new vlocity_cmt.JSONAttributeSupport();
-        // Read the old speed
-        Map<String, object> inputMap;
-        Map<String, object> outputMap = new Map<String, object>(); 
-        Map<String, object> optionsMap = new Map<String, object>();
-
-        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
-        if (v2Attribute) {
-            String values = (String)xLI.get('vlocity_cmt__AttributeSelectedValues__c');
-            if (values == null) return new Map<String, Object>();
-            else return (Map<String, Object>)JSON.deserializeUntyped(values);
-
+    public static Map<String, Object> getJSONAttributeValues(SObject xLI) {
+        String jsonAttribute;
+        if (vHelper.isV2Attribute(xLI.getSObjectType())) {
+            jsonAttribute = (String)xLI.get('vlocity_cmt__AttributeSelectedValues__c');
         } else {
-            Map<String, Object> values = new Map<String, Object>();
-
-            Map<String, Object> jsonAttribute = (Map<String, Object>)JSON.deserializeUntyped((String)xLI.get('vlocity_cmt__JSONAttribute__c'));
-            for (Object catObj : jsonAttribute.values()) {
-                for (Object attrObj : (List<Object>)catObj) {
-                    Map<String, Object> attrib = (Map<String, Object>)attrObj;
-                    Map<String, Object> attributeRunTimeInfo = (Map<String, Object>)attrib.get('attributeRunTimeInfo');
-                    String code = (String)attrib.get('attributeuniquecode__c');
-                    if ((String)attributeRunTimeInfo.get('dataType') == 'Picklist') {
-                        Map<String, Object> selectedItem = (Map<String, Object>)attributeRunTimeInfo.get('selectedItem');
-                        if (selectedItem != null) {
-                            values.put(code, selectedItem.get('value'));
-                        }
-                    } else {
-                        values.put(code, attributeRunTimeInfo.get('value'));
-                    }
-                }
-            }
-
-            System.debug('values: ' + JSON.serialize(values));
-            return values;
-            // inputMap = new Map<String, object>{
-            //     'UseDisplayTextForValues' => false,
-            //     'JSONString' => xLI.get('vlocity_cmt__JSONAttribute__c')
-            // }; 
-            // System.debug(JSON.serialize(inputMap));
-            // jsonSupport.invokeMethod('getAttributeValuesFromJSON', inputMap, outputMap, optionsMap); 
-            // System.debug(JSON.serialize(outputMap));
-            // return (Map<String, Object>)outputMap.get('attributeCodeToValue');
+            // v1
+            jsonAttribute = (String)xLI.get('vlocity_cmt__JSONAttribute__c');
         }
 
-
-        // return attrVals;
+        return vHelper.getJSONAttributeValues(jsonAttribute);
     }
 
-    public static String setAttributeValuesByJSON(Id xLIId, Map<String, Object> attrVals) {
+    public static String setJSONAttributeValues(Id xLIId, Map<String, Object> attrVals) {
         SObject xLI = getLineItem(xLIId);
 
-        return setAttributeValuesByJSON(xLI, attrVals);
+        return setJSONAttributeValues(xLI, attrVals);
     }
 
-    public static String setAttributeValuesByJSON(SObject xLI, Map<String, Object> attrVals) {
-        JSONAttributeSupportEx jsEx = new JSONAttributeSupportEx();
-        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
-
-        String productRefName;
-        if (xLI.getSObjectType() == vlocity_cmt__InventoryItem__c.SObjectType) productRefName = 'vlocity_cmt__ProductId__r';
-        else if (xLI.getSObjectType() == vlocity_cmt__FulfilmentRequestLine__c.SObjectType) productRefName = 'vlocity_cmt__Product2Id__r';
-        else productRefName = 'Product2';
-        Product2 p = (Product2)xLI.getSObject(productRefName);
-        if (v2Attribute) {
-            return jsEx.setJSONAttributesV2((String)xLI.get('vlocity_cmt__AttributeSelectedValues__c'), (String)xLI.get('vlocity_cmt__AttributeMetadataChanges__c'), p.vlocity_cmt__AttributeMetadata__c, attrVals);
+    public static String setJSONAttributeValues(SObject xLI, Map<String, Object> attrVals) {
+        String jsonAttribute;
+        if (vHelper.isV2Attribute(xLI.getSObjectType())) {
+            jsonAttribute = (String)xLI.get('vlocity_cmt__AttributeSelectedValues__c');
         } else {
-            return jsEx.setJSONAttributesV1((String)xLI.get('vlocity_cmt__JSONAttribute__c'), p.vlocity_cmt__JSONAttribute__c, attrVals);
+            // v1
+            jsonAttribute = (String)xLI.get('vlocity_cmt__JSONAttribute__c');
         }
+
+        return vHelper.setJSONAttributes(jsonAttribute, attrVals);
     }
+
 
     @AuraEnabled(cacheable=true)
     public static JSONAttribute getJSONAttribute(Id recordId) {
         JSONAttribute jsonAttrib = new JSONAttribute();
 
-        JSONAttributeSupportEx helper = new JSONAttributeSupportEx();
+        vJsonAttributeViewerController helper = new vJsonAttributeViewerController();
         SObject xLI = getLineItem(recordId);
         jsonAttrib.metadata = helper.getAttributeMetadata(xLI);
-        jsonAttrib.values = getAttributeValuesFromJSON(xLI);
+        jsonAttrib.values = getJSONAttributeValues(xLI);
 
         System.debug(JSON.serialize(jsonAttrib));
 
@@ -260,7 +228,7 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
     @AuraEnabled
     public static Map<String, Object> getAttributeValues(Id recordId) {
         SObject xLI = getLineItem(recordId);
-        return getAttributeValuesFromJSON(xLI);
+        return getJSONAttributeValues(xLI);
     }
 
     @AuraEnabled
@@ -269,10 +237,9 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         System.debug(JSON.serialize(values));
         SObject xLI = getLineItem(recordId);
 
-        String modifiedJSON = setAttributeValuesByJSON(xLI, values);
+        String modifiedJSON = setJSONAttributeValues(xLI, values);
 
-        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType());
-        if (v2Attribute) {
+        if (vHelper.isV2Attribute(xLI.getSObjectType())) {
             xLI.put('vlocity_cmt__AttributeSelectedValues__c', modifiedJSON);
         } else {
             xLI.put('vlocity_cmt__JSONAttribute__c', modifiedJSON);
@@ -283,27 +250,15 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
     public Boolean InvokeMethod(String methodName, Map<String,Object> input, Map<String,Object> output, Map<String,Object> options) {
         return true;
     }
-    
-    private static Boolean isAttributeV2(SObjectType objectType) {
-        Boolean v2Attribute = vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled();
-        if (v2Attribute && (objectType == vlocity_cmt__InventoryItem__c.SObjectType || objectType == vlocity_cmt__FulfilmentRequestLine__c.SObjectType)) {
-            v2Attribute = false;
-        }
-
-        return v2Attribute;
-    }
 
     private static SObject getLineItem(Id xLIId) {
         SObjectType objectType = xLIId.getSobjectType();
         DescribeSObjectResult objectDesc = objectType.getDescribe();
 
         
-        String query, productRefName;
-        if (objectType == vlocity_cmt__InventoryItem__c.SObjectType) productRefName = 'vlocity_cmt__ProductId__r';
-        else if (objectType == vlocity_cmt__FulfilmentRequestLine__c.SObjectType) productRefName = 'vlocity_cmt__Product2Id__r';
-        else productRefName = 'Product2';
-
-        if (isAttributeV2(objectType)) {
+        String productRefName = getProduct2ReferenceName(objectType);
+        String query;
+        if (vHelper.isV2Attribute(objectType)) {
             query = String.format('SELECT Id, {0}.vlocity_cmt__JSONAttribute__c, {0}.vlocity_cmt__AttributeMetadata__c, {0}.vlocity_cmt__AttributeDefaultValues__c, vlocity_cmt__JSONAttribute__c, vlocity_cmt__AttributeMetadataChanges__c, vlocity_cmt__AttributeSelectedValues__c FROM {1} WHERE Id=:xLIId', new List<String> {
                 productRefName,
                 objectDesc.getName()
@@ -327,14 +282,9 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
     }
 
     public AttributeMetadata getAttributeMetadata(SObject xLI) {
-        Boolean v2Attribute = isAttributeV2(xLI.getSObjectType()); // vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled();
-
-        if (v2Attribute) {
-            String productRefName;
-            if (xLI.getSObjectType() == vlocity_cmt__InventoryItem__c.SObjectType) productRefName = 'vlocity_cmt__ProductId__r';
-            else if (xLI.getSObjectType() == vlocity_cmt__FulfilmentRequestLine__c.SObjectType) productRefName = 'vlocity_cmt__Product2Id__r';
-            else productRefName = 'Product2';
-
+        System.debug(xLI.Id);
+        if (vHelper.isV2Attribute(xLI.getSObjectType())) {
+            String productRefName = getProduct2ReferenceName(xLI.getSObjectType());
             Product2 p2 = (Product2)xLI.getSObject(productRefName);
             return getAttributeMetadataV2(p2.vlocity_cmt__AttributeMetadata__c, (String)xLI.get('vlocity_cmt__AttributeMetadataChanges__c'), p2.vlocity_cmt__AttributeDefaultValues__c);
         } else {
@@ -408,80 +358,5 @@ public with sharing class JSONAttributeSupportEx implements vlocity_cmt.VlocityO
         return mdAttribute;
     }
 
-    public String setJSONAttributesV1(String runtimeJSON, String originalJSON, Map<String, Object> attrVals) {
-        System.debug('attrVals: ' + JSON.serialize(attrVals));
-        // Map<String, Object> values = new Map<String, Object>();
 
-        Map<String, Object> jsonAttribute = (Map<String, Object>)JSON.deserializeUntyped(runtimeJSON);
-        for (Object catObj : jsonAttribute.values()) {
-            for (Object attrObj : (List<Object>)catObj) {
-                Map<String, Object> attrib = (Map<String, Object>)attrObj;
-                String code = (String)attrib.get('attributeuniquecode__c');
-                if (attrVals.containsKey(code)) {
-                    Map<String, Object> attributeRunTimeInfo = (Map<String, Object>)attrib.get('attributeRunTimeInfo');
-                    Object val = attrVals.get(code);
-                    
-                    if ((String)attributeRunTimeInfo.get('dataType') == 'Picklist') {
-                        List<Object> values = (List<Object>)attributeRunTimeInfo.get('values');
-                        for (Object valObj : values) {
-                            Object value = ((Map<String, Object>)valObj).get('value');
-                            if (value == val) {
-                                attributeRunTimeInfo.put('selectedItem', valObj);
-                            }
-                        }
-                        // if (selectedItem != null) {
-                        //     values.put(code, selectedItem.get('value'));
-                        // }
-                    } else {
-                        attributeRunTimeInfo.put('value', val);
-                    }
-                }
-
-
-            }
-        }
-
-        // List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest> actionRequestsList = new List<vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest>();
-        // for (String attrCode : attrVals.keySet()) {
-        //     Object attrVal = attrVals.get(attrCode);
-
-        //     actionRequestsList.add(new vlocity_cmt.JSONAttributeSupport.JSONAttributeActionRequest(
-        //         attrCode, 
-        //         vlocity_cmt.JSONAttributeSupport.ActionType.ASSIGN, 
-        //         attrVal)
-        //     );
-        // }
-
-        // vlocity_cmt.JSONAttributeSupport jsonSupport = new vlocity_cmt.JSONAttributeSupport();
-        // Map<String, Object> myInputMap = new Map<String, Object> {
-        //     'objectSO' => null,
-        //     'runTimeAttributesJSON' => runtimeJSON,
-        //     'originalAttributesJSON' => originalJSON,
-        //     'JSONAttributeActionRequestList' => actionRequestsList
-        // };
-        // Map<String, Object> myOutputMap = new Map<String, Object>();
-        // Map<String, Object> myOptionsMap = new Map<String, Object>();
-
-        // jsonSupport.invokeMethod('applyAttributeActions', myInputMap, myOutputMap, myOptionsMap);
-        // String modifiedJSON = (String)myOutputMap.get('modifiedJSON');
-        String modifiedJSON = JSON.serialize(jsonAttribute);
-        System.debug('modifiedJSON: ' + (modifiedJSON));
-
-        return modifiedJSON;
-    }  
-
-    public String setJSONAttributesV2(String runtimeValueJSON, String runtimeMetadataJSON, String originalAttributesJSON, Map<String, Object> attrVals) {
-        Map<String, Object> values = new Map<String, Object>();
-        if (runtimeValueJSON != null) {
-            values = (Map<String, Object>)JSON.deserializeUntyped(runtimeValueJSON);
-        }
-        for (String code : attrVals.keySet()) {
-            Object val = attrVals.get(code);
-            if (val == null || String.valueOf(val) == '') values.remove(code);
-            else values.put(code, val);
-        }
-        // values.putAll(attrVals);
-
-        return JSON.serialize(values);
-    }  
 }
