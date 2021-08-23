@@ -42,10 +42,5 @@ public class vJsonAttributeViewerControllerTest {
             Map<String, Object> attributeValues = vJsonAttributeViewerController.getAttributeValues(lineItemId);
             vJsonAttributeViewerController.setAttributeValues(lineItemId, newVals);
         }
-            // vJsonAttributeViewerController.setAttributeValues(lineItemId)
-
-
-
-        System.debug(vJsonAttributeViewerController.getJSONAttribute('8027j000001kp42AAA'));
     }
 }
