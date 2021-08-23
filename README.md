@@ -36,7 +36,9 @@ By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lig
 
 ### Deploy JSONAttribute Viewer
 The "JsonViewer.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "JSONAttribute viewer" to your org:
+```
 sfdx force:source:deploy -x projects/JsonViewer.xml -u {orgName}
+```
 
 ### How to use Vlocity JSONAttribute Viewer
 1. Open the record (for example, QuoteLinteItem) in Lightning Experience
