@@ -3,9 +3,14 @@ public with sharing class vHelper {
      * @description helper method to check if the V2 JSON Attribute for the given xLI ObjectType
      */
     public static Boolean isV2Attribute(SObjectType itemObjectType) {
+        
         Boolean v2Attribute = vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled();
         // Notice - the InventoryItem & FulfilmentRequestLine__c objects does not support v2 yet
-        return v2Attribute && itemObjectType != vlocity_cmt__InventoryItem__c.SObjectType && itemObjectType != vlocity_cmt__FulfilmentRequestLine__c.SObjectType;
+        v2Attribute = v2Attribute && itemObjectType != vlocity_cmt__InventoryItem__c.SObjectType && itemObjectType != vlocity_cmt__FulfilmentRequestLine__c.SObjectType;
+        if (Test.isRunningTest()) 
+            return vHelperTest.isV2AttributeMock(itemObjectType);
+        else 
+            return v2Attribute;
     }
     
     /**

@@ -4,7 +4,7 @@
  *   - getJSONAttributeValues
  *   - getAttributeValues 
  */
-public with sharing class vJsonAttributeViewerController implements vlocity_cmt.VlocityOpenInterface {
+public with sharing class vJsonAttributeViewerController {
     public class AttributeCategory {
         @AuraEnabled public Id id;
         @AuraEnabled public String code;
@@ -192,12 +192,6 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
         return vHelper.getJSONAttributeValues(jsonAttribute);
     }
 
-    public static String setJSONAttributeValues(Id xLIId, Map<String, Object> attrVals) {
-        SObject xLI = getLineItem(xLIId);
-
-        return setJSONAttributeValues(xLI, attrVals);
-    }
-
     public static String setJSONAttributeValues(SObject xLI, Map<String, Object> attrVals) {
         String jsonAttribute;
         if (vHelper.isV2Attribute(xLI.getSObjectType())) {
@@ -215,9 +209,8 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
     public static JSONAttribute getJSONAttribute(Id recordId) {
         JSONAttribute jsonAttrib = new JSONAttribute();
 
-        vJsonAttributeViewerController helper = new vJsonAttributeViewerController();
         SObject xLI = getLineItem(recordId);
-        jsonAttrib.metadata = helper.getAttributeMetadata(xLI);
+        jsonAttrib.metadata = getAttributeMetadata(xLI);
         jsonAttrib.values = getJSONAttributeValues(xLI);
 
         System.debug(JSON.serialize(jsonAttrib));
@@ -244,12 +237,10 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
         } else {
             xLI.put('vlocity_cmt__JSONAttribute__c', modifiedJSON);
         }
-        update xLI;
-    }    
 
-    public Boolean InvokeMethod(String methodName, Map<String,Object> input, Map<String,Object> output, Map<String,Object> options) {
-        return true;
-    }
+        if (!Test.isRunningTest())
+            update xLI;
+    }    
 
     private static SObject getLineItem(Id xLIId) {
         SObjectType objectType = xLIId.getSobjectType();
@@ -270,18 +261,20 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
             });
         }
         System.debug('query: ' + query);
-        SObject xLI = Database.query(query);
+        SObject xLI;
+        if (Test.isRunningTest()) {
+            xLI = vJsonAttributeViewerControllerTest.getLineItemMock(xLIId);
+        } else {
+            xLI = Database.query(query);
+        }
+
+        System.debug(xLI);
 
         return xLI;
     } 
 
-    public AttributeMetadata getAttributeMetadata(Id xLIId) {
-        SObject xLI = getLineItem(xLIId);
 
-        return getAttributeMetadata(xLI);
-    }
-
-    public AttributeMetadata getAttributeMetadata(SObject xLI) {
+    public static AttributeMetadata getAttributeMetadata(SObject xLI) {
         System.debug(xLI.Id);
         if (vHelper.isV2Attribute(xLI.getSObjectType())) {
             String productRefName = getProduct2ReferenceName(xLI.getSObjectType());
@@ -292,7 +285,7 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
         }
     }
 
-    public AttributeMetadata getAttributeMetadataV1(String jsonAttribute) {
+    public static AttributeMetadata getAttributeMetadataV1(String jsonAttribute) {
         System.debug(jsonAttribute);
         
         AttributeMetadata mdAttribute = new AttributeMetadata();
@@ -319,7 +312,7 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
         return mdAttribute;
     }
 
-    public AttributeMetadata getAttributeMetadataV2(String jsonAttributeMetadata, String jsonAttributeMetadataChanges, String jsonAttributeDefaultValues) {
+    public static AttributeMetadata getAttributeMetadataV2(String jsonAttributeMetadata, String jsonAttributeMetadataChanges, String jsonAttributeDefaultValues) {
         AttributeMetadata mdAttribute = new AttributeMetadata();
         List<Object> categories = (Object[])((Map<String, Object>)JSON.deserializeUntyped(jsonAttributeMetadata)).get('records');
         Map<String, Object> attrChanges = new Map<String, Object>();
@@ -357,6 +350,4 @@ public with sharing class vJsonAttributeViewerController implements vlocity_cmt.
 
         return mdAttribute;
     }
-
-
 }
