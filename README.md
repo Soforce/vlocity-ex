@@ -2,30 +2,63 @@
 ## Overview
 Vlocity extension package is a unlocked package to extend the functionalities of Vlocity CMT managed package. 
 Here is the list of features included in the extension package:
+* **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
+With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
+Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 * **[Vlocity JSON Attribute Viewer](#json-attribute-viewer)**  
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
-Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which has been extended with vlocity_cmt__JSONAttribute__c field.  
+Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 
-*  **[Using Lightning Flow in Vlocity OM](#flow-in-om)**  
+*  **[Using Lightning Flow in Vlocity OM (WIP)](#flow-in-om)**  
 By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This feature helps you to extend Vlocity OM automation task with the lighting flow.
 
-## Install & Configure Vlocity-ex Package
-### <a id="install-package"></a>Install Vlocity-ex package
-You can install the extension package either
-```
-https://login.salesforce.com/packaging/installPackage.apexp?p0=04t3h000002HkLhAAK
-```
-or
-```
-sfdx force:package:install --package 04t3h000002HkLhAAK
-```
-### <a id="configure-package"></a> Configure Vlocity-ex package
-1. Click [vlocity-ex datapacks](build/Post-installation/Datapacks/vlocity-ex-datapacks.json) to open the JSON datapack file.
-2. Copy and paste the JSON content into your text editor and save it as vlocity-ex-datapacks.json file.
-3. Open "Vlocity DataPacks" tab, click "Installed", then select "From File" in the "Import From" dropdown list in the top right of the "Vlocity DataPacks" page.
-4. Browse and select "vlcoity-ex-datapacks.json" file, then click "Next" several times to finish the import of the datapack.
 
 
+## <a id="add-products-with-cfg"></a> Add Products to Carts (PostCartsItems) with Configuration (attributes)
+With the postCartsItems API, you can set the field values with the “fieldsToUpdate” parameter but you cannot achieve the same thing for attributes. In field implementation, it’s normally done by hooking up custom code in the PostCartsItems_PostInvoke event or initiating another putCartsItems API call. Both of them are not ideal because they impact the performance and need custom development.
+
+Here is the solution which allows you to add products with configured attribute values. Once you deploy and configure the solution, it will automatically set the attribute values passed by the extra “attributesToUpdate” JSON node of the “PostCartsItems” payload. This solution has no extra SOQLs and DMLs and almost zero impact on the performance and governor limits.
+
+Here is a sample payload for the CPQ PostCartsItems API: 
+```
+{
+  "methodName": "postCartsItems",
+  "items": [
+    {
+      "itemId": "01u5e000001918uAAA",
+      "attributesToUpdate": {
+        "ATTRIBUTE-016": "Space Grey"
+      }
+    }
+  ],
+  "cartId": "8015e000000p7muAAA",
+  "price": true,
+  "validate": true,
+  "includeAttachment": false,
+  "pagesize": 10,
+  "lastRecordId": null,
+  "hierarchy": -1,
+  "query": "Apple iPhone Xs"
+}
+```
+Similar to the “fieldsToUpdate” which allows you to set the value for the field, the new introduced “attributesToUpdate” allows you to set the value for the attributes.
+
+“V2 Attribute Model” is supported. 
+### Deployment
+The "addProductsWithCfg.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "JSONAttribute viewer" to your org:
+```
+sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName}
+```
+### Post-Deployment Configuration
+* Add “SoforceLogging” entry to the “CPQ Configuration Setup” of “Vlocity CMT Administration“. Set it to false by default. The setting is used to control the debug log output.
+* Register the vCpqAppHandlerHookImpl to the CpqAppHandlerHook Interface Implementation. If you have your own CpqAppHandlerHook implementation, you need to merge the code into your implementation(see the last optional step below).
+* Register the vCpqService.ProcessCartMessage to your Pricing Plan.
+* (Optional) Merge vCpqAppHandlerHookImpl into your own CpqAppHandlerHook implementation by adding “vCpqService.addProductsWithCfg(inputMap)” into the “postCartsItems.PreInvoke” section. See the code snippet below:
+```
+            if (methodName == 'postCartsItems.PreInvoke') {
+                vCpqService.addProductsWithCfg(inputMap);
+            }
+```
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
 By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c etc. 
 * You can view the attributes in a list
