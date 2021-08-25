@@ -8,12 +8,17 @@ public with sharing class vLogger {
         }
     }
 
+    private static void logMessage(LoggingLevel level, String message) {
+        System.debug(level, '(vLogger-' + String.valueOf(level.ordinal()) + ') ' + message);
+    }
+
+
     /*
      * @description log at default DEBUG level
      */
     public static void write(String debugMessage) {
         if (isLogging)
-            System.debug(LoggingLevel.DEBUG, debugMessage);
+            logMessage(LoggingLevel.DEBUG, debugMessage);
     }
 
     /*
@@ -21,7 +26,7 @@ public with sharing class vLogger {
      */
     public static void writeErr(String errMessage) {
         if (isLogging)
-            System.debug(LoggingLevel.ERROR, errMessage);
+            logMessage(LoggingLevel.ERROR, errMessage);
     }
 
     /*
@@ -29,7 +34,7 @@ public with sharing class vLogger {
      */
     public static void writeInfo(String infoMessage) {
         if (isLogging)
-            System.debug(LoggingLevel.INFO, infoMessage);
+            logMessage(LoggingLevel.INFO, infoMessage);
     }
 
     /*
@@ -37,7 +42,7 @@ public with sharing class vLogger {
      */
     public static void writeFine(String fineMessage) {
         if (isLogging)
-            System.debug(LoggingLevel.FINE, fineMessage);
+            logMessage(LoggingLevel.FINE, fineMessage);
     }
 
     /*
