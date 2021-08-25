@@ -11,6 +11,5 @@
         <members>vLoggerTest</members>
         <name>ApexClass</name>
     </types>
-
     <version>52.0</version>
 </Package>
