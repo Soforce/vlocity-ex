@@ -40,6 +40,12 @@ By applying the power of low-code, drag-and-drop functionality to customer engag
 
 
 ## <a id="dataraptor-helper"></a> Helper Functions for Dataraptor
+Custom functions for Dataraptor are provided by this package. The "DRHelper.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Datarapator helper functions" to your org:
+```
+sfdx force:source:deploy -x projects/DRHelper.xml -u {orgName}
+```
+The custom metadata type for custom functions are included in the manifest file.
+
 ### <a id="dataraptor-helper-QueryAggregate"></a> QueryAggregate
 You can exeute aggregate SOQL query and return the aggregated results with the helper function.
 #### Signature
