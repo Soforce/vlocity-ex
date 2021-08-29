@@ -6,19 +6,21 @@ public with sharing class vHelper {
         
         Boolean v2Attribute = vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled();
         // Notice - the InventoryItem & FulfilmentRequestLine__c objects does not support v2 yet
-        v2Attribute = v2Attribute && itemObjectType != vlocity_cmt__InventoryItem__c.SObjectType && itemObjectType != vlocity_cmt__FulfilmentRequestLine__c.SObjectType;
+        if (itemObjectType != null) {
+            v2Attribute = v2Attribute && itemObjectType != vlocity_cmt__InventoryItem__c.SObjectType && itemObjectType != vlocity_cmt__FulfilmentRequestLine__c.SObjectType;
+        }
         if (Test.isRunningTest()) 
             return vHelperTest.isV2AttributeMock(itemObjectType);
         else 
             return v2Attribute;
     }
     
-    /**
-     * @description helper method to check if the V2 JSON Attribute for the given xLI record
-     */
-    public static Boolean isV2Attribute(Id itemId) {
-        return isV2Attribute(itemId.getSobjectType());
-    }
+    // /**
+    //  * @description helper method to check if the V2 JSON Attribute for the given xLI record
+    //  */
+    // public static Boolean isV2Attribute(Id itemId) {
+    //     return isV2Attribute(itemId.getSobjectType());
+    // }
 
     /*
      * @description utiliy method to read the attribute values which supports both v1 and v2

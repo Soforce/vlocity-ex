@@ -1,19 +1,20 @@
 global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface {
     public class vDRHelperException extends Exception {}
 
-    global Boolean invokeMethod(String methodName, Map<String, Object> inputs, Map<String, Object> output, Map<String, Object> options){
-        if (methodName == 'ExecuteAggregateQuery') {
-            List<Object> args = (List<Object>)inputs.get('arguments');
-            AggregateResult[] aggregateResults = executeAggregateQuery(args);
-
-            // Return only if there's aggregated result
-            if (aggregateResults.size() > 0) output.put('result', aggregateResults);
-        } else if (methodName == 'GetJsonAttributes') {
+    global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
+        if (methodName == 'QueryAggregate') {
+            return queryAggregate(input, output, options);
+        } else if (methodName == 'QueryEx') {
+            return queryEx(input, output, options);
+        } else if (methodName == 'GetLineItemAttributes') {
             LineItemHelper helper = new LineItemHelper();
-            return helper.invokeMethod('getAttributeValues', inputs, output, options);
-        } else if (methodName == 'ConvertXLIToStructure') {
+            return helper.invokeMethod('getAttributeValues', input, output, options);
+        } else if (methodName == 'ToProductHierarchy') {
             LineItemHelper helper = new LineItemHelper();
-            return helper.invokeMethod('ToStructure', inputs, output, options);
+            return helper.invokeMethod('ToHierarchy', input, output, options);
+        } else if (methodName == 'ToStructureJson') {
+            JSLTHelper helper = new JSLTHelper();
+            return helper.invokeMethod('toStructure', input, output, options);
         }
             
         return true;
@@ -22,27 +23,54 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
     /**
      * 
      */
-    public static AggregateResult[] executeAggregateQuery(Object[] args) {
+    public static Boolean queryAggregate(Map<String, Object> input, Map<String, Object> output, Map<String, Object> options) {
+        Object[] args = (List<Object>)input.get('arguments');
         String query = (String)args.remove(0);
         if (args.size() > 0) {
             query = String.format(query, args);
         } 
 
-        return Database.query(query);
+        AggregateResult[] aggregateResults = Database.query(query);
+        if (aggregateResults.size() > 0) {
+            output.put('result', aggregateResults);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
      * 
      */
+    public static Boolean queryEx(Map<String, Object> input, Map<String, Object> output, Map<String, Object> options) {
+        List<Object> args = (List<Object>)input.get('arguments');
+        String query = (String)args.remove(0);
+        if (args.size() > 0) {
+            query = String.format(query, args);
+        } 
+
+        List<SObject> results = Database.query(query);
+
+        if (results.size() > 0) {
+            output.put('result', results);
+            return true;
+        } else {
+            return false;
+        }
+    }    
+
+    /**
+     * 
+     */
     global virtual class LineItemHelper implements vlocity_cmt.VlocityOpenInterface {
-        global Boolean invokeMethod(String methodName, Map<String, Object> inputs, Map<String, Object> output, Map<String, Object> options){
+        global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
             try {
                 if (methodName == 'getAttributeValues') {
                     List<Map<String, Object>> attributeValues = new List<Map<String, Object>>();
 
                     Boolean skipEmptyValue = false;
-                    List<Object> args = (List<Object>)inputs.get('arguments');
-                    if (!vlocity_cmt.VlocityFeatureService.isV2AttributeModelEnabled()) {
+                    List<Object> args = (List<Object>)input.get('arguments');
+                    if (!vHelper.isV2Attribute(null)) {
                         String jsonAttribute = (String)args[0];
                         if (args.size() > 1) skipEmptyValue = Boolean.valueOf(args[1]);
 
@@ -56,8 +84,8 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                                 Map<String, Object> attribObj = (Map<String, Object>)itemObj;
                                 Map<String, Object> attributeRunTimeInfo = (Map<String, Object>)attribObj.get('attributeRunTimeInfo');
                                 String attributeCode = (String)attribObj.get('attributeuniquecode__c');
-                                String attributeName = (String)attribObj.get('');
-                                Integer attributeDisplaySequence = (Integer)attribObj.get('');
+                                String attributeName = (String)attribObj.get('attributedisplayname__c');
+                                Integer attributeDisplaySequence = String.isEmpty((String)attribObj.get('attributedisplaysequence__c')) ? null : Integer.valueOf(attribObj.get('attributedisplaysequence__c'));
                                 Object attributeValue;
                                 if ((String)attributeRunTimeInfo.get('dataType') == 'Picklist') {
                                     Map<String, Object> selectedItem = (Map<String, Object>)attributeRunTimeInfo.get('selectedItem');
@@ -84,7 +112,6 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                         Map<String, Object> selectedValues = (Map<String, Object>)JSON.deserializeUntyped((String)args[0]);
                         Map<String, Object> metadata = (Map<String, Object>)JSON.deserializeUntyped((String)args[1]);
                         if (args.size() > 2) skipEmptyValue = Boolean.valueOf(args[2]);
-
                         Map<String, String> attribNames = new Map<String, String>();
                         for (Object categoryRecord : (Object[])metadata.get('records')) {
                             Map<String, Object> pdAttributes = (Map<String, Object>)((Map<String, Object>)categoryRecord).get('productAttributes');
@@ -92,7 +119,8 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                                 Map<String, Object> attribDef = (Map<String, Object>)attribRecord;
                                 String attributeCode = (String)attribDef.get('code');
                                 String attributeName = (String)attribDef.get('label');
-                                Integer attributeDisplaySequence = Integer.valueOf(attribDef.get('displaySequence'));
+
+                                Integer attributeDisplaySequence = attribDef.get('displaySequence') == null ? null : Integer.valueOf(attribDef.get('displaySequence'));
                                 Object attributeValue = selectedValues.get(attributeCode);
 
                                 if (!skipEmptyValue || (attributeValue != null && String.isNotEmpty(String.valueOf(attributeValue)))) {
@@ -108,8 +136,35 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                     }
                     // Sort by DisplaySequence (OOTB is sorted by category and sequence already, no extra sorting here)
                     if (attributeValues.size() > 0) output.put('result', attributeValues);
-                } else if (methodName == 'toStructure') {
+                } else if (methodName == 'ToHierarchy') {
+                    List<Object> items = (List<Object>)input.get('arguments');
 
+                    Map<String, Map<String, Object>> itemMap = new Map<String, Map<String, Object>>();
+                    for (Object itemObj : items) {
+                        Map<String, Object> item = (Map<String, Object>)itemObj;
+                        String lineNumber = (String)item.get('vlocity_cmt__LineNumber__c');
+                        itemMap.put(lineNumber, item);
+                    }
+                    List<Object> rootItems = new List<Object>();
+                    for (Object itemObj : items) {
+                        Map<String, Object> item = (Map<String, Object>)itemObj;
+                        String lineNumber = (String)item.get('vlocity_cmt__LineNumber__c');
+                        Integer idx = lineNumber.lastIndexOf('.');
+                        if (idx == -1) {
+                            rootItems.add(item);
+                        } else {
+                            String parentLN = lineNumber.substring(0, idx);
+                            Map<String, Object> parentItem = itemMap.get(parentLN);
+                            List<Object> childItems = (List<Object>)parentItem.get('items');
+                            if (childItems == null) {
+                                childItems = new List<Object>();
+                                parentItem.put('items', childItems);
+                            }
+                            childItems.add(item);
+                        }
+                    }
+
+                    output.put('result', rootItems);
                 }
                 return true;
             } catch (Exception ex) {
@@ -124,26 +179,38 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
     /**
      * @description Convert JSON from flat to structure based on the attribute name.
      */
-    global virtual class JSONT implements vlocity_cmt.VlocityOpenInterface {
+    global virtual class JSLTHelper implements vlocity_cmt.VlocityOpenInterface {
         /**
          * @description interface implementation
          */
-        global Boolean invokeMethod(String methodName, Map<String, Object> inputs, Map<String, Object> output, Map<String, Object> options){
+        global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
             if (methodName == 'toStructure') {
-                List<Object> arguments = (List<Object>)inputs.get('arguments');
-                Object flatJson = arguments[0];
-                Boolean isMap = (Boolean)arguments[1];
-                String nameField;
-                String valueField;
-                if (!isMap) {
-                    nameField = (String)arguments[2];
-                    valueField = (String)arguments[3];
+                List<Object> args = (List<Object>)input.get('arguments');
+                List<Object> data = new List<Object>();
+
+                Boolean isMap = true;   // default
+                String nameField = 'name';  // default
+                String valueField = 'value'; // default
+                for (Integer i = 0; i < args.size(); i++) {
+                    Object item = args[i];
+                    if (item instanceOf String || item instanceOf Boolean) {
+                        isMap = Boolean.valueOf(args[i]);
+                        if (isMap) {
+                            if (i+1 < args.size()) nameField = (String)args[i+1];
+                            if (i+2 < args.size()) valueField = (String)args[i+2];
+                        }
+                        break;
+                    } else {
+                        data.add(item);
+                    }
                 }
+                
+                Object flatJson = data;
+                if (isMap) flatJson = data[0];
                 //
                 Map<String, Object> structureJson = convertJsonStructure(flatJson, nameField, valueField);
                 //
                 structureJson = onJsonConverted(structureJson);
-
                 output.put('result', structureJson);
             }
 
