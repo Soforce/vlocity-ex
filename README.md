@@ -14,18 +14,8 @@ The custom functions provided includes:
   * **[ToProductHierarchy](#dataraptor-helper-ToProductHierarchy)**  
     Convert the list (flat) of line items to the hierarchy based on the product structure. The conversation uses the vlocity_cmt__LineNumber__c field to re-construct the structure of line items. 
   * **[ToStructureJson](#dataraptor-helper-ToStructureJson)**  
-    Convert a list of attribute name & value pairs into the structured JSON by the attribute name. For example:   
-    ``` 
-    { "parent.child": "some value" } 
-    ``` 
-    is converted to 
-    ``` 
-    { 
-      "parent": { 
-        "child": "some value" 
-      } 
-    }
-    ```
+    Convert a list of attribute name & value pairs into the structured JSON by the attribute name. For example: *{ "parent.child": "some value" }* is converted to *{ 
+      "parent": { "child": "some value" } }*.   
 
 * **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
 This solution provides you the ability to set attribute values on adding products to the cart with postCartsItems CPQ API. Similar to set field values with the "fieldsToUpdate", a new "attributesToUpdate" is added to the postCartsItems API. Follow the instructions to install and configure the manifest (addProductsWithCfg.xml) file and no extra coding is required. 
