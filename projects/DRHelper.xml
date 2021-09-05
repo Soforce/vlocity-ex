@@ -10,7 +10,12 @@
         <name>ApexClass</name>
     </types>
     <types>
-        <members>*</members>
+        <members>vlocity_cmt__FunctionDefinition.DebugLog</members>
+        <members>vlocity_cmt__FunctionDefinition.GetLineItemAttributes</members>
+        <members>vlocity_cmt__FunctionDefinition.QueryAggregate</members>
+        <members>vlocity_cmt__FunctionDefinition.QueryEx</members>
+        <members>vlocity_cmt__FunctionDefinition.ToProductHierarchy</members>
+        <members>vlocity_cmt__FunctionDefinition.ToStructureJson</members>
         <name>CustomMetadata</name>
     </types>    
     <version>52.0</version>

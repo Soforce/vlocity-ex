@@ -25,6 +25,7 @@ This solution provides you the ability to set attribute values on adding product
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 
+* **[Order Management Integration with TMF Specifications](OM-TMF.md)**
 
 ## <a id="dataraptor-helper"></a> Helper Functions for Dataraptor
 Custom functions for Dataraptor are provided by this package. The "DRHelper.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Datarapator helper functions" to your org:  

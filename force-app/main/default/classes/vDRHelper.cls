@@ -15,6 +15,9 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         } else if (methodName == 'ToStructureJson') {
             JSLTHelper helper = new JSLTHelper();
             return helper.invokeMethod('toStructure', input, output, options);
+        } else if (methodName == 'DebugLog') {
+            vLogger.write('DebugLog: ' + JSON.serialize(input));
+            return true;
         }
             
         return true;
@@ -97,8 +100,6 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 }
             } else {
                 // Object processedJValue = processJsonNode(jsonObject, parentJpath, jsonObject);
-
-                // System.debug(parentJpath + ':' + jsonObject);
             }
         }
 
@@ -256,9 +257,7 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
          * @description interface implementation
          */
         global override Object invoke(String methodName, Map<String, Object> input) {
-            System.debug('Jyue');
             if (methodName == 'toStructure') {
-                System.debug('Jyue1');
                 List<Object> args = (List<Object>)input.get('arguments');
                 List<Object> data = new List<Object>();
 
@@ -284,12 +283,8 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 //
                 Map<String, Object> structureJson = convertJsonStructure(flatJson, nameField, valueField);
                 //
-                // structureJson = onJsonConverted(structureJson);
-                // traverseJson(null, structureJson);
-                System.debug('Jyue2');
 
                 return structureJson;
-                // output.put('result', structureJson);
             }
 
             return null;

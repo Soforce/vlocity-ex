@@ -1,0 +1,187 @@
+{
+    "orderItemsWithAttrs": [
+        {
+            "attrs": {
+                "@type": "ProductOrder",
+                "externalId": "8017j000001BRpAAAW",
+                "id": "",
+                "orderType": "add",
+                "requestedCompletionDate": "",
+                "requestedStartDate": "",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOGEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "8027j0000015PU8AAM",
+                "product.@type": "Product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "ProductSpecificationRef",
+                "product.productSpecification.id": "b0e7a1171bf7e81438200fe3604bcbdf",
+                "product.productSpecification.name": "IP Flex v1",
+                "productCharacteristic.Automated Trunk Failover": "No",
+                "productCharacteristic.BGRP": "No",
+                "productCharacteristic.Calling Plan Id": "a93f0cda-0393-83c0-9bc9-82367247362a",
+                "productCharacteristic.Cicuit Id/Site Id": "a93f0cda-0393-83c0-9bc9-82367247362a",
+                "productCharacteristic.Contract Term": "12 Month",
+                "productCharacteristic.EnhancedFeatures": "No",
+                "productCharacteristic.PBX Handoff": "Public IP PBX",
+                "productCharacteristic.Port Speed": "4 Mbps",
+                "productCharacteristic.Product Offering": "e18c7ac71b2fe01038200fe3604bcb1c",
+                "productCharacteristic.Service Address": "<br>",
+                "productCharacteristic.Supported Concurrent Calls": "24",
+                "productCharacteristic.Transport Type": "ADI",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOHEA4"
+        },
+        {
+            "attrs": {
+                "@referredType": "Individual",
+                "@type": "Related Party",
+                "id": "",
+                "name": "",
+                "role": "OrderLineItemContact"
+            },
+            "id": "a5D7j000000HJOOEA4"
+        },
+        {
+            "attrs": {
+                "@referredType": "Customer",
+                "@type": "RelatedParty",
+                "id": "0017j00000VeqNjAAJ",
+                "name": "SFI-SNow-POC-BusAcc",
+                "role": "Customer"
+            },
+            "id": "a5D7j000000HJOIEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "8027j0000015PUHAA2",
+                "product.@type": "Product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "ProductSpecificationRef",
+                "product.productSpecification.id": "b2f321931bb7e81438200fe3604bcb8b",
+                "product.productSpecification.name": "Technical Calling Plan v1",
+                "productCharacteristic.Calling Plan Description": "Plan B. Local and Long Distance (US)",
+                "productCharacteristic.Included Minutes": "300 Minutes",
+                "productCharacteristic.Local Off Net Calling": "Yes",
+                "productCharacteristic.Outbound Domestic Calling": "Yes",
+                "productCharacteristic.Outbound International Off Net Calling": "Yes",
+                "productCharacteristic.Outbound Off Net Calling": "Yes",
+                "productCharacteristic.Outbound US Domestic Calling": "No",
+                "productCharacteristic.Outbound United States Off-Net Calling": "Yes",
+                "productCharacteristic.Unlimited On Net Calling": "No",
+                "productCharacteristic.Unlimited Outbound Local Calls": "No",
+                "productCharacteristic.Unlimited US LD Calling": "No",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOJEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "8027j0000015PUGAA2",
+                "product.@type": "Product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "ProductSpecificationRef",
+                "product.productSpecification.id": "19f4ed571bb7e81438200fe3604bcb71",
+                "product.productSpecification.name": "Telephone Number Block v1",
+                "productCharacteristic.Block Size": "10",
+                "productCharacteristic.Calling Plan Id": "f60de30c-fc34-3b50-b358-8de18ee083c6",
+                "productCharacteristic.Expedite Service": "No",
+                "productCharacteristic.Phone Number Type": "Standard",
+                "productCharacteristic.Range End": "10",
+                "productCharacteristic.Range Start": "1",
+                "productCharacteristic.TN Type": "Native",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOKEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "01t7j000002cgy0AAA",
+                "product.@type": "Product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "ProductSpecificationRef",
+                "product.productSpecification.id": "fc85e51b1bb7e81438200fe3604bcb65",
+                "product.productSpecification.name": "VoIP Module Card (ADI) v1",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOLEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "8027j0000015PUFAA2",
+                "product.@type": "product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "product",
+                "product.productSpecification.id": "4ac5e91b1bb7e81438200fe3604bcb0a",
+                "product.productSpecification.name": "VoIP Resiliency v1",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJOMEA4"
+        },
+        {
+            "attrs": {
+                "@type": "ProductOrderItem",
+                "action": "Add",
+                "id": "8027j0000015PUAAA2",
+                "product.@type": "Product",
+                "product.isBundle": "false",
+                "product.place.id": "0017j00000VeqeIAAR",
+                "product.place.name": "SFI-SNow-POC-SerAcc",
+                "product.productSpecification.@type": "ProductSpecificationRef",
+                "product.productSpecification.id": "9b91e5971b77e81438200fe3604bcb80",
+                "product.productSpecification.name": "ADI v1",
+                "productCharacteristic.Access Speed": "10 Mbps",
+                "productCharacteristic.Additional IP Addresses": "127.0.0.1",
+                "productCharacteristic.Bandwidth Allocation": "4 Mbps",
+                "productCharacteristic.Class of Service": "Yes",
+                "productCharacteristic.Install Type": "AT&T",
+                "productCharacteristic.Port Speed": "1 Mbps",
+                "productCharacteristic.Router Option": "AT&T Managed",
+                "productOffering.id": "dee9e9db1bf7e81438200fe3604bcb3c",
+                "productOffering.name": "IP Flex with ADI",
+                "quantity": "1.00",
+                "state": "new"
+            },
+            "id": "a5D7j000000HJONEA4"
+        }
+    ]
+}

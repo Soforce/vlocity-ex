@@ -46,8 +46,6 @@ public with sharing class vJsonAttributeViewerController {
         @AuraEnabled public Object defaultValue;
 
         public AttributeSpecification(Map<String, Object> attrMapV1) {
-            // System.debug(JSON.serialize(attrMapV1));
-
             code = (String)attrMapV1.get('attributeuniquecode__c');
             // dataType = (String)attrMapV1.get('valuedatatype__c'); // TODO...
             // inputType = (String)attrMapV1.get('uidisplaytype__c');
@@ -104,9 +102,6 @@ public with sharing class vJsonAttributeViewerController {
             } else if (valueType == 'dropdown') {
                 valueType = 'picklist';
             }
-
-            // System.debug('attrMapV2: ' + JSON.serialize(attrMapV2));
-            // System.debug('attrChangeV2: ' + JSON.serialize(attrChangeV2));
 
             if (attrChangeV2 != null) {
                 attrMapV2.putAll(attrChangeV2); // Merge
@@ -213,7 +208,7 @@ public with sharing class vJsonAttributeViewerController {
         jsonAttrib.metadata = getAttributeMetadata(xLI);
         jsonAttrib.values = getJSONAttributeValues(xLI);
 
-        System.debug(JSON.serialize(jsonAttrib));
+        // System.debug(JSON.serialize(jsonAttrib));
 
         return jsonAttrib;
     }
@@ -226,8 +221,8 @@ public with sharing class vJsonAttributeViewerController {
 
     @AuraEnabled
     public static void setAttributeValues(Id recordId, Map<String, Object> values) {
-        System.debug(recordId);
-        System.debug(JSON.serialize(values));
+        // System.debug(recordId);
+        // System.debug(JSON.serialize(values));
         SObject xLI = getLineItem(recordId);
 
         String modifiedJSON = setJSONAttributeValues(xLI, values);
@@ -260,7 +255,7 @@ public with sharing class vJsonAttributeViewerController {
                 objectDesc.getName()
             });
         }
-        System.debug('query: ' + query);
+        // System.debug('query: ' + query);
         SObject xLI;
         if (Test.isRunningTest()) {
             xLI = vJsonAttributeViewerControllerTest.getLineItemMock(xLIId);
@@ -268,14 +263,14 @@ public with sharing class vJsonAttributeViewerController {
             xLI = Database.query(query);
         }
 
-        System.debug(xLI);
+        // System.debug(xLI);
 
         return xLI;
     } 
 
 
     public static AttributeMetadata getAttributeMetadata(SObject xLI) {
-        System.debug(xLI.Id);
+        // System.debug(xLI.Id);
         if (vHelper.isV2Attribute(xLI.getSObjectType())) {
             String productRefName = getProduct2ReferenceName(xLI.getSObjectType());
             Product2 p2 = (Product2)xLI.getSObject(productRefName);
@@ -286,7 +281,7 @@ public with sharing class vJsonAttributeViewerController {
     }
 
     public static AttributeMetadata getAttributeMetadataV1(String jsonAttribute) {
-        System.debug(jsonAttribute);
+        // System.debug(jsonAttribute);
         
         AttributeMetadata mdAttribute = new AttributeMetadata();
         Map<String, Object> categories = (Map<String, Object>)JSON.deserializeUntyped(jsonAttribute);
