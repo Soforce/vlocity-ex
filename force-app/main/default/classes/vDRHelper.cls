@@ -103,7 +103,7 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
             }
         }
 
-        public virtual Boolean skipProcessJsonNode() {
+        public virtual Boolean skipProcessJsonResult() {
             return true;
         }
 
@@ -114,7 +114,7 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         global virtual Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
             Object result = invoke(methodName, input);
 
-            if (!skipProcessJsonNode()) {
+            if (!skipProcessJsonResult()) {
                 traverseJson(null, result);
             }
 
@@ -252,11 +252,12 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
      * @description Convert JSON from flat to structure based on the attribute name.
      */
     global virtual class JSLTHelper extends BaseHelper {
-        // public override Boolean skipProcessJsonNode() { return false; }
+        // public override Boolean skipProcessJsonResult() { return false; }
         /**
          * @description interface implementation
          */
         global override Object invoke(String methodName, Map<String, Object> input) {
+            // System.debug('input: ' + JSON.serialize(input));
             if (methodName == 'toStructure') {
                 List<Object> args = (List<Object>)input.get('arguments');
                 List<Object> data = new List<Object>();

@@ -3,6 +3,7 @@ global with sharing class vTMFDRHelper implements vlocity_cmt.VlocityOpenInterfa
 
     global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
         if (methodName == 'ToProductOrderItem') {
+            // System.debug('input: ' + JSON.serialize(input));
             ProductOrderItemHelper helper = new ProductOrderItemHelper();
             return helper.invokeMethod('toStructure', input, output, options);
         }
@@ -11,7 +12,7 @@ global with sharing class vTMFDRHelper implements vlocity_cmt.VlocityOpenInterfa
     }
 
     global virtual class ProductOrderItemHelper extends vDRHelper.JSLTHelper {
-        public override Boolean skipProcessJsonNode() { return false; }
+        public override Boolean skipProcessJsonResult() { return false; }
 
         public override Object processJsonNode(String parentJpath, Object jsonObject) {
             if (parentJpath.endsWith('productCharacteristic')) {
