@@ -15,6 +15,9 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         } else if (methodName == 'ToStructureJson') {
             JSLTHelper helper = new JSLTHelper();
             return helper.invokeMethod('toStructure', input, output, options);
+        } else if (methodName == 'DebugLog') {
+            vLogger.write('DebugLog: ' + JSON.serialize(input));
+            return true;
         }
             
         return true;
@@ -97,12 +100,10 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 }
             } else {
                 // Object processedJValue = processJsonNode(jsonObject, parentJpath, jsonObject);
-
-                // System.debug(parentJpath + ':' + jsonObject);
             }
         }
 
-        public virtual Boolean skipProcessJsonNode() {
+        public virtual Boolean skipProcessJsonResult() {
             return true;
         }
 
@@ -113,7 +114,7 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         global virtual Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
             Object result = invoke(methodName, input);
 
-            if (!skipProcessJsonNode()) {
+            if (!skipProcessJsonResult()) {
                 traverseJson(null, result);
             }
 
@@ -251,14 +252,13 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
      * @description Convert JSON from flat to structure based on the attribute name.
      */
     global virtual class JSLTHelper extends BaseHelper {
-        // public override Boolean skipProcessJsonNode() { return false; }
+        // public override Boolean skipProcessJsonResult() { return false; }
         /**
          * @description interface implementation
          */
         global override Object invoke(String methodName, Map<String, Object> input) {
-            System.debug('Jyue');
+            // System.debug('input: ' + JSON.serialize(input));
             if (methodName == 'toStructure') {
-                System.debug('Jyue1');
                 List<Object> args = (List<Object>)input.get('arguments');
                 List<Object> data = new List<Object>();
 
@@ -284,12 +284,8 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 //
                 Map<String, Object> structureJson = convertJsonStructure(flatJson, nameField, valueField);
                 //
-                // structureJson = onJsonConverted(structureJson);
-                // traverseJson(null, structureJson);
-                System.debug('Jyue2');
 
                 return structureJson;
-                // output.put('result', structureJson);
             }
 
             return null;
