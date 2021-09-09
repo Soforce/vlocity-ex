@@ -8,9 +8,6 @@ The custom functions provided includes:
   * **[executeFieldMapper](#generic-helper-executeFieldMapper)**  
     Copy the values from source object to the target based on FieldMapper.  
 
- 
-
-
 * **[Dataraptor Helper Functions](#dataraptor-helper)**  
 The custom functions provided includes:
   * **[QueryAggregate](#dataraptor-helper-QueryAggregate)**  
@@ -34,6 +31,9 @@ With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes o
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 
 
+* **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
+
+
 *  **[Using Lightning Flow in Vlocity OM (WIP)](#flow-in-om)**  
 By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This feature helps you to extend Vlocity OM automation task with the lighting flow.
 
@@ -53,9 +53,6 @@ executeFieldMapper(sourceObj, targetObj)
 
 #### Return
 The target sobject is returned.
-
-* **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
-
 
 ## <a id="dataraptor-helper"></a> Helper Functions for Dataraptor
 Custom functions for Dataraptor are provided by this package. The "DRHelper.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Datarapator helper functions" to your org:  
