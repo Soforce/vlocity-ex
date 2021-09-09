@@ -33,4 +33,37 @@ public class vHelperTest {
         // System.debug(vHelper.isV2Attribute('8027j000001ktTyAAI'));
 
     }
+
+    @isTest
+    private static void test_executeFieldMapper() {
+        vlocity_cmt__CustomFieldMap__c[] mappings = new List<vlocity_cmt__CustomFieldMap__c> {
+            new vlocity_cmt__CustomFieldMap__c(
+                Name = '1',
+                vlocity_cmt__SourceSObjectType__c = 'QuoteLineItem',
+                vlocity_cmt__DestinationSObjectType__c = 'OpportunityLineItem',
+                vlocity_cmt__SourceFieldName__c= 'Description',
+                vlocity_cmt__DestinationFieldName__c = 'Description'
+            ),
+            new vlocity_cmt__CustomFieldMap__c(
+                Name = '2',
+                vlocity_cmt__SourceSObjectType__c = 'QuoteLineItem',
+                vlocity_cmt__DestinationSObjectType__c = 'OpportunityLineItem',
+                vlocity_cmt__SourceFieldName__c= 'vlocity_cmt__RecurringCharge__c',
+                vlocity_cmt__DestinationFieldName__c = 'vlocity_cmt__RecurringCharge__c'
+            )
+        };
+
+        insert mappings;
+
+        QuoteLineItem qLI = new QuoteLineItem(
+            Description = 'Test Quote',
+            vlocity_cmt__RecurringCharge__c = 100
+        );
+        OpportunityLineItem oLI = new OpportunityLineItem();
+
+        vHelper.executeFieldMapper(qLI, oLI);
+
+        System.assertEquals(100, oLI.vlocity_cmt__RecurringCharge__c);
+    }    
+
 }

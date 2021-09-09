@@ -118,5 +118,39 @@ public with sharing class vHelper {
         }
         // v1
         return JSON.serialize(attributeJsonObj);
-    }       
+    }     
+    
+
+    // public static SObject executeFieldMapper(Id sourceObjId, Id targetObjId) {
+    //     SObjectType objType = sourceObjId.getSObjectType();
+    //     Map<String, SObjectField> fldMap = objType.getDescribe().fields.getMap();
+    //     List<String> fnames = new List<String>(fldMap.keySet());
+    //     String query = 'SELECT ' + String.join(fnames, ',') + ' FROM ' + objType.getDescribe().getName() + ' WHERE Id=:sourceObjId';
+    //     // Map<Id, SObject> resultMap = new Map<Id, SObject>(Database.query(query));
+
+    //     SObject sourceObj = Database.query(query);
+    //     SObject targetObj = targetObjId.getSObjectType().newSObject();
+
+    //     return executeFieldMapper(sourceObj, targetObj);
+    // }
+
+    /**
+     * 
+     */
+    public static SObject executeFieldMapper(SObject sourceObj, SObject targetObj) {
+        String sourceObjType = sourceObj.getSObjectType().getDescribe().getName();
+        String targetObjType = targetObj.getSObjectType().getDescribe().getName();
+
+        Map<String, Object> sourceFieldVals = sourceObj.getPopulatedFieldsAsMap();
+        Map<String, Object> targetFieldVals = targetObj.getPopulatedFieldsAsMap();
+        
+        String query = 'SELECT vlocity_cmt__SourceFieldName__c, vlocity_cmt__DestinationFieldName__c FROM vlocity_cmt__CustomFieldMap__c WHERE vlocity_cmt__SourceSObjectType__c=:sourceObjType and vlocity_cmt__DestinationSObjectType__c=:targetObjType';
+        vlocity_cmt__CustomFieldMap__c[] fieldMaps = Database.query(query);
+        for (vlocity_cmt__CustomFieldMap__c fieldMap : fieldMaps) {
+            if (sourceFieldVals.get(fieldMap.vlocity_cmt__SourceFieldName__c) != targetFieldVals.get(fieldMap.vlocity_cmt__DestinationFieldName__c))
+                targetObj.put(fieldMap.vlocity_cmt__DestinationFieldName__c, sourceFieldVals.get(fieldMap.vlocity_cmt__SourceFieldName__c));
+        }
+
+        return targetObj; 
+    }
 }
