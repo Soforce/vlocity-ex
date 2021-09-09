@@ -3,6 +3,14 @@
 Vlocity extension package is a unlocked package to extend the functionalities of Vlocity CMT managed package. 
 Here is the list of features included in the extension package:
 
+* **[Helper Methods](#generic-helper)**  
+The custom functions provided includes:
+  * **[executeFieldMapper](#generic-helper-executeFieldMapper)**  
+    Copy the values from source object to the target based on FieldMapper.  
+
+ 
+
+
 * **[Dataraptor Helper Functions](#dataraptor-helper)**  
 The custom functions provided includes:
   * **[QueryAggregate](#dataraptor-helper-QueryAggregate)**  
@@ -27,6 +35,24 @@ Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped 
 
 *  **[Using Lightning Flow in Vlocity OM (WIP)](#flow-in-om)**  
 By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This feature helps you to extend Vlocity OM automation task with the lighting flow.
+
+## <a id="generic-helper"></a> Helper Methods
+Utility or helper methods.
+### <a id="generic-helper-executeFieldMapper"></a> executeFieldMapper
+Copy the field values from the source sobject to the target based on the FieldMappers.
+#### Signature
+```
+executeFieldMapper(sourceObj, targetObj)
+```
+#### Parameters
+* ***sourceObj***  
+  The source sobject.
+* ***targetObj***  
+  The target sobject.  
+
+#### Return
+The target sobject is returned.
+
 
 
 ## <a id="dataraptor-helper"></a> Helper Functions for Dataraptor

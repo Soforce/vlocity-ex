@@ -141,15 +141,14 @@ public with sharing class vHelper {
         String sourceObjType = sourceObj.getSObjectType().getDescribe().getName();
         String targetObjType = targetObj.getSObjectType().getDescribe().getName();
 
-        // System.debug(sourceObjType + ' - ' + targetObjType);
-
+        Map<String, Object> sourceFieldVals = sourceObj.getPopulatedFieldsAsMap();
+        Map<String, Object> targetFieldVals = targetObj.getPopulatedFieldsAsMap();
+        
         String query = 'SELECT vlocity_cmt__SourceFieldName__c, vlocity_cmt__DestinationFieldName__c FROM vlocity_cmt__CustomFieldMap__c WHERE vlocity_cmt__SourceSObjectType__c=:sourceObjType and vlocity_cmt__DestinationSObjectType__c=:targetObjType';
-
-        // System.debug(query);
         vlocity_cmt__CustomFieldMap__c[] fieldMaps = Database.query(query);
-        // System.debug(fieldMaps);
         for (vlocity_cmt__CustomFieldMap__c fieldMap : fieldMaps) {
-            targetObj.put(fieldMap.vlocity_cmt__DestinationFieldName__c, sourceObj.get(fieldMap.vlocity_cmt__SourceFieldName__c));
+            if (sourceFieldVals.get(fieldMap.vlocity_cmt__SourceFieldName__c) != targetFieldVals.get(fieldMap.vlocity_cmt__DestinationFieldName__c))
+                targetObj.put(fieldMap.vlocity_cmt__DestinationFieldName__c, sourceFieldVals.get(fieldMap.vlocity_cmt__SourceFieldName__c));
         }
 
         return targetObj; 
