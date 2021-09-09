@@ -1,0 +1,18 @@
+[
+    {
+        "%vlocity_namespace%__DomainObjectAPIName__c": "json",
+        "%vlocity_namespace%__DomainObjectCreationOrder__c": 1,
+        "%vlocity_namespace%__DomainObjectFieldAPIName__c": "productOrder",
+        "%vlocity_namespace%__DomainObjectFieldType__c": "Object",
+        "%vlocity_namespace%__GlobalKey__c": "03865fd1-f8df-5646-b15e-af556afa71d2",
+        "%vlocity_namespace%__InterfaceFieldAPIName__c": "productOrderItem",
+        "%vlocity_namespace%__IsDisabled__c": false,
+        "%vlocity_namespace%__IsRequiredForUpsert__c": false,
+        "%vlocity_namespace%__MapId__c": "vProductOrderRequestDRCustoma4Z7j00000018K2EAIItem0",
+        "%vlocity_namespace%__OMplusSyncEnabled__c": true,
+        "%vlocity_namespace%__UpsertKey__c": false,
+        "Name": "vProductOrderRequestDR",
+        "VlocityDataPackType": "SObject",
+        "VlocityRecordSObjectType": "%vlocity_namespace%__DRMapItem__c"
+    }
+]

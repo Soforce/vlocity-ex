@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>vTMFInterface</members>
+        <members>vTMFInterfaceTest</members>
+        <members>vTMFDRHelper</members>
+        <members>vTMFDRHelperTest</members>        
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>vlocity_cmt__FunctionDefinition.ToTMFProductOrderItem</members>
+        <name>CustomMetadata</name>
+    </types>        
+    <version>52.0</version>
+</Package>

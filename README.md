@@ -33,6 +33,7 @@ This solution provides you the ability to set attribute values on adding product
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 
+
 *  **[Using Lightning Flow in Vlocity OM (WIP)](#flow-in-om)**  
 By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This feature helps you to extend Vlocity OM automation task with the lighting flow.
 
@@ -53,12 +54,18 @@ executeFieldMapper(sourceObj, targetObj)
 #### Return
 The target sobject is returned.
 
+* **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
 
 
 ## <a id="dataraptor-helper"></a> Helper Functions for Dataraptor
-Custom functions for Dataraptor are provided by this package. The "DRHelper.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Datarapator helper functions" to your org:
+Custom functions for Dataraptor are provided by this package. The "DRHelper.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Datarapator helper functions" to your org:  
+* **deploy without tests**
 ```
 sfdx force:source:deploy -x projects/DRHelper.xml -u {orgName}
+```
+* **deploy with tests**
+```
+sfdx force:source:deploy -x projects/DRHelper.xml -u {orgName} -l RunSpecifiedTests -r vLoggerTest,vHelperTest,vDRHelperTest
 ```
 The custom metadata type for custom functions are included in the manifest file.
 
@@ -435,8 +442,13 @@ Similar to the “fieldsToUpdate” which allows you to set the value for the fi
 “V2 Attribute Model” is supported. 
 ### Deployment
 The "addProductsWithCfg.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "JSONAttribute viewer" to your org:
+* **deploy without tests**
 ```
 sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName}
+```
+* **deploy with tests**
+```
+sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunSpecifiedTests -r vHelperTest,vCpqServiceTest,vCpqAppHandlerHookImplTest,vLoggerTest
 ```
 ### Post-Deployment Configuration
 * Add “SoforceLogging” entry to the “CPQ Configuration Setup” of “Vlocity CMT Administration“. Set it to false by default. The setting is used to control the debug log output.
@@ -458,18 +470,18 @@ By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lig
 
 ### Deploy JSONAttribute Viewer
 The "JsonViewer.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "JSONAttribute viewer" to your org:
+* **deploy without tests**
 ```
 sfdx force:source:deploy -x projects/JsonViewer.xml -u {orgName}
+```
+* **deploy with tests**
+```
+sfdx force:source:deploy -x projects/JsonViewer.xml -u {orgName} -l RunSpecifiedTests -r vHelperTest,vJsonAttributeViewerControllerTest
 ```
 
 ### How to use Vlocity JSONAttribute Viewer
 1. Open the record (for example, QuoteLinteItem) in Lightning Experience
 2. Click "Setup" icon from the top-right of the page and choose "Edit Page"
 3. Find the "Vlocity JSON Attribute Viewer" under the "Custom" section of available components and drag & drop the component into your lighting record page.
-## <a id="flow-in-om"></a> Using Lightning Flow in Vlocity OM
-By applying the power of low-code, drag-and-drop functionality to customer engagement, Lightning Flow delivers an innovative new way for businesses to realize the benefits of process automation. This extension feature helps you to extend Vlocity OM automation task with the lighting flow.
-To use Lightning autolaunched flow in your orchestration plan, you need add "AutoTask" orchestration item because there's no flow type of orchestration item at the moment.  
-
-
 
 

@@ -15,6 +15,9 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         } else if (methodName == 'ToStructureJson') {
             JSLTHelper helper = new JSLTHelper();
             return helper.invokeMethod('toStructure', input, output, options);
+        } else if (methodName == 'DebugLog') {
+            vLogger.write('DebugLog: ' + JSON.serialize(input));
+            return true;
         }
             
         return true;
@@ -59,11 +62,75 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
         }
     }    
 
+    global abstract class BaseHelper implements vlocity_cmt.VlocityOpenInterface {
+        /**
+         * 
+         */
+        private void traverseJson(String parentJpath, Object jsonObject) {
+            if (parentJpath == null) parentJpath = '$';
+
+            if (jsonObject instanceOf Map<String, Object>) {
+                Map<String, Object> jsonMapObject = (Map<String, Object>)jsonObject;
+                for (String nodeName : jsonMapObject.keySet()) {
+                    String jPath = parentJpath + '.' + nodeName;
+                    Object jValue = jsonMapObject.get(nodeName);
+                    Object processedJValue = processJsonNode(jPath, jValue);
+                    if (processedJValue != jValue) {
+                        // Use new value to replace the old and stop traversing the node
+                        jsonMapObject.put(nodeName, processedJValue);
+                    } else {
+                        traverseJson(jPath, jValue);
+                    }
+                }
+
+            } else if (jsonObject instanceOf List<Object>) {
+                List<Object> jsonArrayObject = (List<Object>)jsonObject;
+                for (Integer i = 0; i < jsonArrayObject.size(); i++) {
+                    String jPath = parentJpath + '[' + String.valueOf(i) + ']';
+                    Object jValue = jsonArrayObject[i];
+
+                    Object processedJValue = processJsonNode(jPath, jValue);
+
+                    if (processedJValue != jValue) {
+                        // Use new value to replace the old and stop traversing the node
+                        jsonArrayObject[i] = processedJValue;
+                    } else {
+                        traverseJson(jPath, jValue);
+                    }
+                }
+            } else {
+                // Object processedJValue = processJsonNode(jsonObject, parentJpath, jsonObject);
+            }
+        }
+
+        public virtual Boolean skipProcessJsonResult() {
+            return true;
+        }
+
+        public virtual Object processJsonNode(String parentJpath, Object jsonObject) {
+            return jsonObject;
+        }
+
+        global virtual Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
+            Object result = invoke(methodName, input);
+
+            if (!skipProcessJsonResult()) {
+                traverseJson(null, result);
+            }
+
+            output.put('result', result);
+
+            return true;
+        }
+
+        global abstract Object invoke(String methodName, Map<String, Object> input);
+    }
+
     /**
      * 
      */
-    global virtual class LineItemHelper implements vlocity_cmt.VlocityOpenInterface {
-        global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
+    global virtual class LineItemHelper extends BaseHelper {
+        global override Object invoke(String methodName, Map<String, Object> input){
             try {
                 if (methodName == 'getAttributeValues') {
                     List<Map<String, Object>> attributeValues = new List<Map<String, Object>>();
@@ -135,7 +202,11 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                         }
                     }
                     // Sort by DisplaySequence (OOTB is sorted by category and sequence already, no extra sorting here)
-                    if (attributeValues.size() > 0) output.put('result', attributeValues);
+
+                    if (attributeValues.size() > 0) {
+                        // output.put('result', attributeValues);
+                        return attributeValues;
+                    }
                 } else if (methodName == 'ToHierarchy') {
                     List<Object> items = (List<Object>)input.get('arguments');
 
@@ -164,12 +235,13 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                         }
                     }
 
-                    output.put('result', rootItems);
+                    return rootItems;
+                    // output.put('result', rootItems);
                 }
-                return true;
+                return null;
             } catch (Exception ex) {
                 vLogger.write(ex);
-                return false;
+                return null;
             } finally {
                 
             }
@@ -179,11 +251,13 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
     /**
      * @description Convert JSON from flat to structure based on the attribute name.
      */
-    global virtual class JSLTHelper implements vlocity_cmt.VlocityOpenInterface {
+    global virtual class JSLTHelper extends BaseHelper {
+        // public override Boolean skipProcessJsonResult() { return false; }
         /**
          * @description interface implementation
          */
-        global Boolean invokeMethod(String methodName, Map<String, Object> input, Map<String, Object> output, Map<String, Object> options){
+        global override Object invoke(String methodName, Map<String, Object> input) {
+            // System.debug('input: ' + JSON.serialize(input));
             if (methodName == 'toStructure') {
                 List<Object> args = (List<Object>)input.get('arguments');
                 List<Object> data = new List<Object>();
@@ -210,19 +284,13 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 //
                 Map<String, Object> structureJson = convertJsonStructure(flatJson, nameField, valueField);
                 //
-                structureJson = onJsonConverted(structureJson);
-                output.put('result', structureJson);
+
+                return structureJson;
             }
 
-            return true;
+            return null;
         }
 
-        /**
-         * @description virtual method to be overriden by the child class for the given business logic
-         */
-        public virtual Map<String, Object> onJsonConverted(Map<String, Object> structureJson) {
-            return structureJson;
-        }
 
         /**
          * @description
@@ -306,8 +374,7 @@ global with sharing class vDRHelper implements vlocity_cmt.VlocityOpenInterface 
                 }
             }
         }        
+
     }
-
-
 
 }

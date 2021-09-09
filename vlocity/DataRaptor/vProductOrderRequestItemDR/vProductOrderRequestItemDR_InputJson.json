@@ -1,0 +1,46 @@
+{
+    "orderItemsWithAttrs": [
+        {
+            "Id": "a1i9E000000MgedQAC",
+            "attrs": {
+                "Customer Requested Date": "2018-07-06 12:16:45",
+                "Product Description": "Mobile Subscription",
+                "action": "Add"
+            },
+            "orderItems": [
+                {
+                    "Id": "a1i9E000000MgedQAC",
+                    "attrs": {
+                        "Allowance": "1000",
+                        "Allowance Unit": "GB",
+                        "Product Description": "Internet Partenaire"
+                    }
+                },
+                {
+                    "Id": "a1i9E000000MgedQBC",
+                    "attrs": {
+                        "Allowance": "100",
+                        "Allowance Unit": "GB",
+                        "Product Description": "Internet 4G"
+                    }
+                },
+                {
+                    "Id": "a1i9E000000FredQAC",
+                    "attrs": {
+                        "Allowance": "10",
+                        "Allowance Unit": "Hr",
+                        "Product Description": "National Calls"
+                    }
+                },
+                {
+                    "Id": "a1i9E000000FredQAC",
+                    "attrs": {
+                        "Allowance": "1000",
+                        "Allowance Unit": "Hr",
+                        "Product Description": "Local Calls"
+                    }
+                }
+            ]
+        }
+    ]
+}
