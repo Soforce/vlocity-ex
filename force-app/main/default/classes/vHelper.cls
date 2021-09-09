@@ -118,5 +118,40 @@ public with sharing class vHelper {
         }
         // v1
         return JSON.serialize(attributeJsonObj);
-    }       
+    }     
+    
+
+    // public static SObject executeFieldMapper(Id sourceObjId, Id targetObjId) {
+    //     SObjectType objType = sourceObjId.getSObjectType();
+    //     Map<String, SObjectField> fldMap = objType.getDescribe().fields.getMap();
+    //     List<String> fnames = new List<String>(fldMap.keySet());
+    //     String query = 'SELECT ' + String.join(fnames, ',') + ' FROM ' + objType.getDescribe().getName() + ' WHERE Id=:sourceObjId';
+    //     // Map<Id, SObject> resultMap = new Map<Id, SObject>(Database.query(query));
+
+    //     SObject sourceObj = Database.query(query);
+    //     SObject targetObj = targetObjId.getSObjectType().newSObject();
+
+    //     return executeFieldMapper(sourceObj, targetObj);
+    // }
+
+    /**
+     * 
+     */
+    public static SObject executeFieldMapper(SObject sourceObj, SObject targetObj) {
+        String sourceObjType = sourceObj.getSObjectType().getDescribe().getName();
+        String targetObjType = targetObj.getSObjectType().getDescribe().getName();
+
+        // System.debug(sourceObjType + ' - ' + targetObjType);
+
+        String query = 'SELECT vlocity_cmt__SourceFieldName__c, vlocity_cmt__DestinationFieldName__c FROM vlocity_cmt__CustomFieldMap__c WHERE vlocity_cmt__SourceSObjectType__c=:sourceObjType and vlocity_cmt__DestinationSObjectType__c=:targetObjType';
+
+        // System.debug(query);
+        vlocity_cmt__CustomFieldMap__c[] fieldMaps = Database.query(query);
+        // System.debug(fieldMaps);
+        for (vlocity_cmt__CustomFieldMap__c fieldMap : fieldMaps) {
+            targetObj.put(fieldMap.vlocity_cmt__DestinationFieldName__c, sourceObj.get(fieldMap.vlocity_cmt__SourceFieldName__c));
+        }
+
+        return targetObj; 
+    }
 }
