@@ -451,6 +451,7 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
 * Add “SoforceLogging” entry to the “CPQ Configuration Setup” of “Vlocity CMT Administration“. Set it to false by default. The setting is used to control the debug log output.
 * Register the vCpqAppHandlerHookImpl to the CpqAppHandlerHook Interface Implementation. If you have your own CpqAppHandlerHook implementation, you need to merge the code into your implementation(see the last optional step below).
 * Register the vCpqService.ProcessCartMessage to your Pricing Plan.
+![Image of vCpqService.ProcessCartMessage Step](https://github.com/Soforce/vlocity-ex/blob/master/images/vCpqService-ProcessCartMessage-Step.PNG)
 * (Optional) Merge vCpqAppHandlerHookImpl into your own CpqAppHandlerHook implementation by adding “vCpqService.addProductsWithCfg(inputMap)” into the “postCartsItems.PreInvoke” section. See the code snippet below:
 ```
             if (methodName == 'postCartsItems.PreInvoke') {
