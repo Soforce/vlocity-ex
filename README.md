@@ -483,3 +483,5 @@ sfdx force:source:deploy -x projects/JsonViewer.xml -u {orgName} -l RunSpecified
 3. Find the "Vlocity JSON Attribute Viewer" under the "Custom" section of available components and drag & drop the component into your lighting record page.
 
 
+
+
