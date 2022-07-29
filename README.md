@@ -30,7 +30,6 @@ This solution provides you the ability to set attribute values on adding product
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
 
-
 * **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
 
 
