@@ -3,7 +3,7 @@ public with sharing class vLogger {
     private static Boolean isLogging = true;
     static {
         vlocity_cmt__CpqConfigurationSetup__c cpqSetup = vlocity_cmt__CpqConfigurationSetup__c.getInstance('SoforceLogging');
-        if (Test.isRunningTest() || (cpqSetup != null && cpqSetup.vlocity_cmt__SetupValue__c != 'True')) {
+        if (Test.isRunningTest() || (cpqSetup != null && cpqSetup.vlocity_cmt__SetupValue__c == 'True')) {
             isLogging = true;
         }
     }
@@ -58,6 +58,7 @@ public with sharing class vLogger {
      */
     public static void writeVar(String valName, Object val) {
         String strVal;
+
         if (val instanceof String) {
             strVal = (String)val;
         } else {
