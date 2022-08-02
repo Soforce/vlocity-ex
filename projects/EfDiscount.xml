@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>vCpqEfDiscountService</members>
+        <members>vCpqEfDiscountServiceTest</members>
+        <members>vLogger</members>
+        <members>vLoggerTest</members>
+<!--
+        <members>vHelper</members>
+        <members>vHelperTest</members>
+-->
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>vlocity_cmt__Catalog__c.EntityFilterId__c</members>
+        <name>CustomField</name>
+    </types>    
+    <version>52.0</version>
+</Package>
