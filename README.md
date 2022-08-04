@@ -475,6 +475,19 @@ sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName}
 sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecifiedTests -r vLoggerTest,vEfDiscountServiceTest
 ```
 
+### Post-Deployment Configuration
+* Register the vCpqEfDiscountService.ApplyFilterBasedDiscount to your Pricing Plan.
+![Image of vCpqEfDiscountService.ApplyFilterBasedDiscount Step](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-PPlan.PNG)
+
+### Configure Filter Based Discount
+* Create your EntityFilter, e.g. the following a filter for all black iphones:
+![Image of Black iPhone Filter](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-EF.PNG)
+* Create a catalog and select the entity filter created in the previous step:
+![Image of Catalog with EF](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-Catalog.PNG)
+* Create your discount and select the catalog configured above.
+
+
+
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
 By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c etc. 
 * You can view the attributes in a list
