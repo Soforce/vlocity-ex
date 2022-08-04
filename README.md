@@ -25,6 +25,8 @@ The custom functions provided includes:
 * **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
 This solution provides you the ability to set attribute values on adding products to the cart with postCartsItems CPQ API. Similar to set field values with the "fieldsToUpdate", a new "attributesToUpdate" is added to the postCartsItems API. Follow the instructions to install and configure the manifest (addProductsWithCfg.xml) file and no extra coding is required. 
 
+* **[Discount with Filter-Based Product Catalog](#ef-based-discount)**  
+The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
 
 * **[Vlocity JSON Attribute Viewer](#json-attribute-viewer)**  
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
@@ -457,6 +459,34 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
                 vCpqService.addProductsWithCfg(inputMap);
             }
 ```
+
+## <a id="ef-based-discount"></a> Configure Discount Products with Entity Filter
+You can either select product(s) or catalogs when you configure a discount in the Product Designer (or Product Console). Sometime you may need to configure a dynamic products for a discount based off run-time query instead of static predefined product selections. This solution extends the OOTB Discount with EntityFilter to support dynamic query for the qualified products. For example, the discount is qualfiied for any rate plans with 5GB or bigger data plan.
+
+### Deploy Filter Based Discount
+The "EfDiscount.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Filter Based Discount" to your org:
+* **deploy without tests**
+```
+sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName}
+```
+* **deploy with tests**
+```
+sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecifiedTests -r vLoggerTest,vEfDiscountServiceTest
+```
+
+### Post-Deployment Configuration
+* Register the vCpqEfDiscountService.ApplyFilterBasedDiscount to your Pricing Plan.
+![Image of vCpqEfDiscountService.ApplyFilterBasedDiscount Step](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-PPlan.PNG)
+
+### Configure Filter Based Discount
+* Create your EntityFilter, e.g. the following a filter for all black iphones:
+![Image of Black iPhone Filter](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-EF.PNG)
+* Create a catalog and select the entity filter created in the previous step:
+![Image of Catalog with EF](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-Catalog.PNG)
+* Create your discount and select the catalog configured above.
+
+
+
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
 By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c etc. 
 * You can view the attributes in a list
