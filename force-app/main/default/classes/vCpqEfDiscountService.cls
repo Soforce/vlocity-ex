@@ -218,7 +218,16 @@ global with sharing class vCpqEfDiscountService implements vlocity_cmt.VlocityOp
         input.put('entityFilterIds', efIds);
         input.put('variablesMap',  new Map<String, Object>());
         input.put('variableNameToType', new Map<String, String>());
-        efSupport.invokeMethod('executeFilters', input, output, null);
+        if (!Test.isRunningTest()) {
+            efSupport.invokeMethod('executeFilters', input, output, null);
+        } else {
+            Map<Id, Set<Id>> filterIdToObjectIds = new Map<Id, Set<Id>>();
+            Set<Id> itemIds = new Map<Id, SObject>(xLIs).keySet();
+            for (Id efId : efIds) {
+                filterIdToObjectIds.put(efId, itemIds);
+            }
+            output.put('filterIdToObjectIds', filterIdToObjectIds);
+        }
         Map<Id, Set<Id>> filterIdToObjectIds = (Map<Id, Set<Id>>) output.get('filterIdToObjectIds');
         
         return filterIdToObjectIds;
