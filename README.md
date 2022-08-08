@@ -257,7 +257,8 @@ Here is a sample result:
 ```
 
 ### <a id="dataraptor-helper-ToStructureJson"></a> ToStructureJson
-The function can transform a list of name/value pairs into a structured JSON by the attribute name. The transformation follow the [JSLT](https://github.com/schibsted/jslt "JSON Query & Transformation Language") notation:
+The function can transform a list of name/value pairs into a structured JSON by the 
+name. The transformation follow the [JSLT](https://github.com/schibsted/jslt "JSON Query & Transformation Language") notation:
 * **"parent.child.name": value**
   The DOT(.) is used the specify the object hierarchy level. The above name&value pair will be converted to the "parent" object with a "child" object which has a "name" attribute with the given value.
 * **"arrayName[index].name": value**
@@ -488,7 +489,7 @@ sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecified
 
 
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
-By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c etc. 
+By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lightning record page, you can easily view and manage the JSON attributes created for the xLI record, such as QuoteLineItem, OrderItem or Asset, vlocity_cmt__FulfillmentRequestLine__c, InventoryItem__c etc. 
 * You can view the attributes in a list
 * You can open the attribute to see the details of it
 * You can modify the attribute and save it back to the record
