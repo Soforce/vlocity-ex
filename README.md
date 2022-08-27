@@ -25,7 +25,7 @@ The custom functions provided includes:
 * **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
 This solution provides you the ability to set attribute values on adding products to the cart with postCartsItems CPQ API. Similar to set field values with the "fieldsToUpdate", a new "attributesToUpdate" is added to the postCartsItems API. Follow the instructions to install and configure the manifest (addProductsWithCfg.xml) file and no extra coding is required. 
 
-* **[Discount with Filter-Based Product Catalog](#ef-based-discount)**  
+* **[Use EntityFilter to Qualify Products Dynamically for Discounts](#ef-based-discount)**  
 The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
 
 * **[Vlocity JSON Attribute Viewer](#json-attribute-viewer)**  
