@@ -1,4 +1,4 @@
-# Vlocity Extension (Vlocity-ex) Package
+# Salesforce Industries Extension (Vlocity-ex) Package
 ## Overview
 Vlocity extension package is a unlocked package to extend the functionalities of Vlocity CMT managed package. 
 Here is the list of features included in the extension package:
