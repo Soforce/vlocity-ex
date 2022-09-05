@@ -37,3 +37,4 @@ $RECYCLE.BIN/
 # Vlocity build files
 vlocity-temp/
 VlocityBuildLog.yaml
+.sf/config.json

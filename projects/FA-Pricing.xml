@@ -5,6 +5,8 @@
         <members>vContractServiceTest</members>
         <members>vLogger</members>
         <members>vLoggerTest</members>
+        <members>vHelper</members>
+        <members>vHelperTest</members>
         <name>ApexClass</name>
     </types>
   
