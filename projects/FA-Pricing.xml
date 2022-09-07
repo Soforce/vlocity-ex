@@ -9,6 +9,10 @@
         <members>vHelperTest</members>
         <name>ApexClass</name>
     </types>
-  
+    <types>
+        <members>vlocity_cmt__ContractLineItem__c.vlocity_cmt__LineStatus__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.Action__c</members>
+        <name>CustomField</name>
+    </types>
     <version>52.0</version>
 </Package>

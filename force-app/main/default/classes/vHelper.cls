@@ -170,10 +170,21 @@ public with sharing class vHelper {
         return fMappers;
     }
 
+    static Object getFieldValue(SObject entity, String fieldPath) {
+        String[] fieldNames = fieldPath.split('\\.');
+        SObject data = entity;
+        for (Integer i=0; i < fieldNames.size() - 1; i++) {
+            data = data.getSObject(fieldNames[i]);
+        }
+
+        return data.get(fieldNames[fieldNames.size() - 1]);
+    }
+
     public static void copySObjectFieldValues(SObject sourceObj, SObject destinationObj, Map<String, String> fMappings) {
         for (String srcFName : fMappings.keySet()) {
             String destFName = fMappings.get(srcFName);
-            destinationObj.put(destFName, sourceObj.get(srcFName));
+            Object value = getFieldValue(sourceObj, srcFName);
+            destinationObj.put(destFName, value);
         }
     }
 }
