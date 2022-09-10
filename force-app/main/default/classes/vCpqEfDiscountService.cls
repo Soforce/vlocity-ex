@@ -25,6 +25,13 @@ global with sharing class vCpqEfDiscountService implements vlocity_cmt.VlocityOp
         Id cartId = parent.Id;
         List<SObject> itemList = (List<SObject>)vlocity_cmt.PricingPlanService.getFromPricingContext('LineItemList');
 
+        // Debug...
+        for (SObject item : itemList) {
+            item.put('vlocity_cmt__Action__c', 'Change');
+            System.debug('Set to Change');
+        }
+
+
         Map<Id, SObject> discountMap = getAllApplicableFilterBasedDiscounts(cartId, accountId);
         vLogger.writeVar('discountMap', discountMap);
 
