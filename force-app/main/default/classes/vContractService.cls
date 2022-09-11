@@ -181,7 +181,34 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
     }
 
     Boolean activateContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
+        Id contractId = (Id)inputMap.get('ContractId'); // Contract Id
 
+        List<vlocity_cmt__ContractLineItem__c> activateItems = new List<vlocity_cmt__ContractLineItem__c>();
+        Contract myContract = [SELECT Id, vlocity_cmt__OriginalContractId__c, (SELECT Id, vlocity_cmt__AssetReferenceId__c, Action__c FROM vlocity_cmt__ContractLineItems__r) FROM Contract WHERE Id=:contractId];
+        Set<String> assetRefIds = new Set<String>();
+        for (vlocity_cmt__ContractLineItem__c cli : myContract.vlocity_cmt__ContractLineItems__r) {
+            cli.vlocity_cmt__LineStatus__c = 'Active';
+            if (cli.Action__c != 'Add')
+                assetRefIds.add(cli.vlocity_cmt__AssetReferenceId__c);
+        }
+        activateItems.addAll(myContract.vlocity_cmt__ContractLineItems__r);
+
+        if (myContract.vlocity_cmt__OriginalContractId__c != null) {
+            Id masterId = myContract.vlocity_cmt__OriginalContractId__c;
+            // Amendment contract, needs to update CLIs from the original contracts
+            vlocity_cmt__ContractLineItem__c[] cLIs = [
+                SELECT Id, vlocity_cmt__AssetReferenceId__c, vlocity_cmt__LineStatus__c FROM vlocity_cmt__ContractLineItem__c
+                WHERE (vlocity_cmt__ContractId__c=:masterId OR vlocity_cmt__ContractId__r.vlocity_cmt__OriginalContractId__c=:masterId)  
+                    AND vlocity_cmt__ContractId__c!=:contractId AND vlocity_cmt__ContractId__r.Status='Activated' 
+                    AND vlocity_cmt__LineStatus__c='Active' AND Action__c!='Disconnected' AND vlocity_cmt__AssetReferenceId__c IN :assetRefIds];
+            
+            for (vlocity_cmt__ContractLineItem__c cLI : cLIs) {
+                cLI.vlocity_cmt__LineStatus__c = 'Inactive';
+                activateItems.add(cLI);
+            }
+        }
+        update activateItems;
+        
         return true;
     }
 
