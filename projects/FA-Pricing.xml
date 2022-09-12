@@ -12,6 +12,35 @@
     <types>
         <members>vlocity_cmt__ContractLineItem__c.vlocity_cmt__LineStatus__c</members>
         <members>vlocity_cmt__ContractLineItem__c.Action__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.AttributeMetadataChanges__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.CurrencyPaymentMode__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveOneTimeCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveOneTimeLoyaltyTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveOneTimeTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveQuantity__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveRecurringCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveRecurringTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveUsageCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveUsagePriceTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.InCartQuantityMap__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.OneTimeCost__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.OneTimeCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.OneTimeLoyaltyPrice__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.OneTimeLoyaltyTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.OneTimeMargin__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.ProductHierarchyGroupKeyPath__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.ProductHierarchyPath__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.RecurringCost__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.RecurringCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.RecurringMargin__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.EffectiveUsageQuantity__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageCostTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageUnitCost__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageMargin__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageMeasurementId__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsagePriceTotal__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageQuantity__c</members>
+        <members>vlocity_cmt__ContractLineItem__c.UsageUnitPrice__c</members>
         <name>CustomField</name>
     </types>
     <version>52.0</version>
