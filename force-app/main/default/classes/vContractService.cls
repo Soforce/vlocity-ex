@@ -4,10 +4,10 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
     global Boolean invokeMethod(String methodName, Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         vLogger.writeInfo('Enter vContractService.' + methodName);
         try {
-            if (methodName == 'CreateContractLineItems') {
+            if (methodName == 'RefreshContractLineItems') {
                 return refreshContractLineItems(inputMap, outputMap, options);
-            } else if (methodName == 'UpdateContractLineItems') {
-                return refreshContractLineItems(inputMap, outputMap, options);
+            } else if (methodName == 'GenerateAmendingCartItems') {
+                return generateAmendingCartItems(inputMap, outputMap, options);
             } else if (methodName == 'AmendContractLineItems') {
                 return amendContractLineItems(inputMap, outputMap, options);
             } else if (methodName == 'ActivateContractLineItems') {
@@ -68,6 +68,51 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
     //     return true;
     // }
+
+    Boolean generateAmendingCartItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
+        Id amendmentId = (Id)inputMap.get('AmendmentContractId'); // Amendment Contract Id
+        Id masterId = (Id)inputMap.get('MasterContractId');
+        Id cartId = (Id)inputMap.get('CartId');
+
+        Map<String, String> fMappers = vHelper.getFieldMappers('vlocity_cmt__ContractLineItem__c', getCartItemObjectName(cartId));
+        vlocity_cmt__ContractLineItem__c[] cLIs = getAmendingContractLineItems(masterId, fMappers.keySet());
+
+        vLogger.writeVar('AmendingCLIs', cLIs);
+
+        //
+        List<SObject> insertItems = new List<SObject>();
+        Integer qLIRootLN = 0;
+        Id currentId = null;
+        Integer currentCLIRootLN = -1;
+        for (vlocity_cmt__ContractLineItem__c cLI : cLIs) {
+            Integer cLIRootLN = Integer.valueOf(cLI.vlocity_cmt__LineNumber__c.subString(0, 4));
+            if (currentId != cLI.vlocity_cmt__ContractId__c) {
+                currentId = cLI.vlocity_cmt__ContractId__c;
+                currentCLIRootLN = Integer.valueOf(cLI.vlocity_cmt__LineNumber__c);
+                qLIRootLN += 1;
+            } else if (currentCLIRootLN != cLIRootLN) {
+                currentCLIRootLN = Integer.valueOf(cLI.vlocity_cmt__LineNumber__c);
+                qLIRootLN += 1;
+            }
+
+            String lineNumber = cLI.vlocity_cmt__LineNumber__c;
+            if (qLIRootLN != cLIRootLN) {
+                lineNumber = String.valueOf(qLIRootLN).leftPad(4, '0') + lineNumber.substring(5);
+            }
+
+            SObject cartItem = newCartItem(cartId);
+            vHelper.copySObjectFieldValues(cLI, cartItem, fMappers);
+            cartItem.put('vlocity_cmt__LineNumber__c', lineNumber);
+
+            insertItems.add(cartItem);
+        }
+
+
+        insert insertItems;
+        vLogger.writeVar('insertItems', insertItems);
+
+        return true;
+    }
 
     Boolean amendContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         Id cartId = (Id)inputMap.get('CartId');
@@ -136,7 +181,34 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
     }
 
     Boolean activateContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
+        Id contractId = (Id)inputMap.get('ContractId'); // Contract Id
 
+        List<vlocity_cmt__ContractLineItem__c> activateItems = new List<vlocity_cmt__ContractLineItem__c>();
+        Contract myContract = [SELECT Id, vlocity_cmt__OriginalContractId__c, (SELECT Id, vlocity_cmt__AssetReferenceId__c, Action__c FROM vlocity_cmt__ContractLineItems__r) FROM Contract WHERE Id=:contractId];
+        Set<String> assetRefIds = new Set<String>();
+        for (vlocity_cmt__ContractLineItem__c cli : myContract.vlocity_cmt__ContractLineItems__r) {
+            cli.vlocity_cmt__LineStatus__c = 'Active';
+            if (cli.Action__c != 'Add')
+                assetRefIds.add(cli.vlocity_cmt__AssetReferenceId__c);
+        }
+        activateItems.addAll(myContract.vlocity_cmt__ContractLineItems__r);
+
+        if (myContract.vlocity_cmt__OriginalContractId__c != null) {
+            Id masterId = myContract.vlocity_cmt__OriginalContractId__c;
+            // Amendment contract, needs to update CLIs from the original contracts
+            vlocity_cmt__ContractLineItem__c[] cLIs = [
+                SELECT Id, vlocity_cmt__AssetReferenceId__c, vlocity_cmt__LineStatus__c FROM vlocity_cmt__ContractLineItem__c
+                WHERE (vlocity_cmt__ContractId__c=:masterId OR vlocity_cmt__ContractId__r.vlocity_cmt__OriginalContractId__c=:masterId)  
+                    AND vlocity_cmt__ContractId__c!=:contractId AND vlocity_cmt__ContractId__r.Status='Activated' 
+                    AND vlocity_cmt__LineStatus__c='Active' AND Action__c!='Disconnected' AND vlocity_cmt__AssetReferenceId__c IN :assetRefIds];
+            
+            for (vlocity_cmt__ContractLineItem__c cLI : cLIs) {
+                cLI.vlocity_cmt__LineStatus__c = 'Inactive';
+                activateItems.add(cLI);
+            }
+        }
+        update activateItems;
+        
         return true;
     }
 
@@ -183,7 +255,29 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
         };
         reqiredFields.addAll(fields);
 
-        String query = 'SELECT ' + String.join(new List<String>(reqiredFields), ',') + ' FROM ' + getCartItemObjectName(cartId) + ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId';
+        String query = 'SELECT ' + String.join(new List<String>(reqiredFields), ',') + 
+            ' FROM ' + getCartItemObjectName(cartId) + 
+            ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId AND vlocity_cmt__Action__c != \'Existing\'';
+        return Database.query(query);
+    }
+
+
+    
+    List<vlocity_cmt__ContractLineItem__c> getAmendingContractLineItems(Id masterContractId, Set<String> fields) {
+        Set<String> reqiredFields = new Set<String> {
+            'vlocity_cmt__AssetReferenceId__c'.toLowerCase(),
+            'vlocity_cmt__LineNumber__c'.toLowerCase(),
+            'vlocity_cmt__OriginalContractId__c'.toLowerCase()
+        };
+        reqiredFields.addAll(fields);
+        String query = 'SELECT ' + String.join(new List<String>(reqiredFields), ',') + 
+            ' FROM vlocity_cmt__ContractLineItem__c' +
+            ' WHERE (vlocity_cmt__ContractId__c=:masterContractId OR vlocity_cmt__ContractId__r.vlocity_cmt__OriginalContractId__c=:masterContractId)' +
+            ' AND vlocity_cmt__ContractId__r.Status=\'Activated\' AND vlocity_cmt__LineStatus__c=\'Active\' AND Action__c IN (\'Add\', \'Change\')' +
+            ' ORDER BY vlocity_cmt__OriginalContractId__c, vlocity_cmt__LineNumber__c';
+        
+        vLogger.writeVar('query', query);
+
         return Database.query(query);
     }
 
