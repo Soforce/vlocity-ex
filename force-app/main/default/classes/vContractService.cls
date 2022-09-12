@@ -128,16 +128,16 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
         String query = 'SELECT Id, vlocity_cmt__LineNumber__c, vlocity_cmt__AssetReferenceId__c FROM ' + getCartItemObjectName(cartId) + ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId';
         Map<String, SObject> cartItems = new Map<String, SObject>();
+        Integer lastLN = 0;
         for (SObject cartItem : Database.query(query)) {
             cartItems.put((String)cartItem.get('vlocity_cmt__AssetReferenceId__c'), cartItem);
+            Integer ln = Integer.valueOf((String)cartItem.get('vlocity_cmt__LineNumber__c'));
+            if (ln > lastLN) lastLN = ln;
         }
 
-        Integer lastLN = 0;
         List<String> childLNPrefixes = new List<String>();
         for (Integer i=contractItems.size() - 1; i>=0; i--) {
             vlocity_cmt__ContractLineItem__c contractItem = contractItems[i];
-            Integer ln = Integer.valueOf(contractItem.vlocity_cmt__LineNumber__c);
-            if (ln > lastLN) lastLN = ln;
 
             if (contractItem.vlocity_cmt__LineNumber__c.length() > 4) {
                 throw new vContractServiceException('The selected contract line item with LineNumber ' + contractItem.vlocity_cmt__LineNumber__c + ' is not a root item and can not be amended.');
@@ -165,6 +165,11 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
                 SObject cartItem = newCartItem(cartId);
                 vHelper.copySObjectFieldValues(contractItem, cartItem, fMappers);
+
+                // System.debug(JSON.serialize(fMappers));
+                // System.debug(JSON.serialize(contractItem));
+                // System.debug(JSON.serialize(cartItem));
+                
 
                 // Bump up the LineNumber__c for the new create cart item
                 cartItem.put('vlocity_cmt__Action__c', 'Existing'); // Flag for MACD
