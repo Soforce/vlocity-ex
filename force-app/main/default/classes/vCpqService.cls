@@ -70,8 +70,11 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
                     Map<String, Object> itemToAdd = (Map<String, Object>)item;
                     Map<String, Object> attributesToUpdate = (Map<String, Object>)itemToAdd.get('attributesToUpdate');     
                     if (attributesToUpdate != null && attributesToUpdate.size() > 0) {
-                        AddProductsWithCfgMessage message = new AddProductsWithCfgMessage((String)itemToAdd.get('itemId'), attributesToUpdate);
-                        addCartMessage(message);
+                        String[] itemIds = ((String)itemToAdd.get('itemId')).split(',');
+                        for (String itemId : itemIds) {
+                            AddProductsWithCfgMessage message = new AddProductsWithCfgMessage(itemId.trim(), attributesToUpdate);
+                            addCartMessage(message);
+                        }
                     }
                 }
             }
