@@ -1,4 +1,6 @@
 public with sharing class vHelper {
+    public class vHelperException extends Exception {}
+
     /**
      * @description helper method to check if the V2 JSON Attribute for the given xLI ObjectType
      */
@@ -152,5 +154,37 @@ public with sharing class vHelper {
         }
 
         return targetObj; 
+    }
+
+    /**
+     * @description retrives the Field Mappers for the given source & target object
+     */
+    public static Map<String, String> getFieldMappers(String sourceObjType, String destinationObjType) {
+        Map<String, String> fMappers = new Map<String, String>();
+        for (vlocity_cmt__CustomFieldMap__c cfm : vlocity_cmt__CustomFieldMap__c.getAll().values()) {
+            if (cfm.vlocity_cmt__DestinationSObjectType__c == destinationObjType && cfm.vlocity_cmt__SourceSObjectType__c == sourceObjType) {
+                fMappers.put(cfm.vlocity_cmt__SourceFieldName__c.toLowerCase(), cfm.vlocity_cmt__DestinationFieldName__c.toLowerCase());
+            }
+        }
+
+        return fMappers;
+    }
+
+    static Object getFieldValue(SObject entity, String fieldPath) {
+        String[] fieldNames = fieldPath.split('\\.');
+        SObject data = entity;
+        for (Integer i=0; i < fieldNames.size() - 1; i++) {
+            data = data.getSObject(fieldNames[i]);
+        }
+
+        return data.get(fieldNames[fieldNames.size() - 1]);
+    }
+
+    public static void copySObjectFieldValues(SObject sourceObj, SObject destinationObj, Map<String, String> fMappings) {
+        for (String srcFName : fMappings.keySet()) {
+            String destFName = fMappings.get(srcFName);
+            Object value = getFieldValue(sourceObj, srcFName);
+            destinationObj.put(destFName, value);
+        }
     }
 }

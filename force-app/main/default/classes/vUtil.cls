@@ -1,5 +1,6 @@
 /**
- * @descripition Utility class
+ * Utility class
+ * @author soforce
  */
 public class vUtil {
     public static Object compareSObjs(Id fromId, Id toId) {
