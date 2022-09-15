@@ -1,3 +1,7 @@
+/**
+ * Utility class for debug log
+ * @author soforce
+ */
 public with sharing class vLogger {
     @TestVisible
     private static Boolean isLogging = true;
@@ -9,7 +13,7 @@ public with sharing class vLogger {
     }
 
     private static void logMessage(LoggingLevel level, String message) {
-        System.debug(level, '(vLogger-' + String.valueOf(level.ordinal()) + ') ' + message);
+        System.debug(level, 'vLogger| ' + message);
     }
 
 

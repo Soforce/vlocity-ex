@@ -1,15 +1,18 @@
+/**
+ * Service class for vlocity Contract Management
+ * @author soforce
+ */
 global with sharing class vContractService implements vlocity_cmt.VlocityOpenInterface {
     public class vContractServiceException extends Exception {}
 
     global Boolean invokeMethod(String methodName, Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         vLogger.writeInfo('Enter vContractService.' + methodName);
+        vLogger.writeVar('inputMap', inputMap);
         try {
             if (methodName == 'RefreshContractLineItems') {
                 return refreshContractLineItems(inputMap, outputMap, options);
             } else if (methodName == 'GenerateAmendingCartItems') {
                 return generateAmendingCartItems(inputMap, outputMap, options);
-            } else if (methodName == 'AmendContractLineItems') {
-                return amendContractLineItems(inputMap, outputMap, options);
             } else if (methodName == 'ActivateContractLineItems') {
                 return activateContractLineItems(inputMap, outputMap, options);
             }
@@ -25,7 +28,7 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
 
     /**
-     * @description refresh contract line items from cart items
+     * Refresh contract line items from cart items
      */
     Boolean refreshContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         Id cartId = (Id)inputMap.get('CartId');     // Cart (Quote/Order/Opportunity) Id
@@ -36,6 +39,9 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
         
         List<SObject> cartItems = retrieveCartItems(cartId, fMappers.keySet());
         Map<String, vlocity_cmt__ContractLineItem__c> contractItems = retrieveContractLineItems(contractId, null);
+
+        vLogger.writeVar('cartItems', cartItems);
+        vLogger.writeVar('contractItems', contractItems);
 
         List<SObject> insertItems = new List<SObject>();
         List<SObject> updateItems = new List<SObject>();
@@ -48,7 +54,8 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
                 updateItems.add(contractItem);
             } else {
                 contractItem = new vlocity_cmt__ContractLineItem__c(
-                    vlocity_cmt__ContractId__c = contractId
+                    vlocity_cmt__ContractId__c = contractId, 
+                    vlocity_cmt__LineStatus__c = 'Draft'
                 );
                 insertItems.add(contractItem);
             }
@@ -56,6 +63,9 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
             vHelper.copySObjectFieldValues(cartItem, contractItem, fMappers);
         }
         
+        vLogger.writeVar('insertItems', insertItems);
+        vLogger.writeVar('updateItems', updateItems);
+        vLogger.writeVar('contractItems(delete)', contractItems.values());
 
         insert insertItems;
         update updateItems;
@@ -64,18 +74,16 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
         return true;
     }
 
-    // Boolean updateContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
-
-    //     return true;
-    // }
-
+    /**
+     * Generate line items for the cart to amend the given contract 
+     */
     Boolean generateAmendingCartItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
-        Id amendmentId = (Id)inputMap.get('AmendmentContractId'); // Amendment Contract Id
-        Id masterId = (Id)inputMap.get('MasterContractId');
+        Id contractId = (Id)inputMap.get('ContractId');
         Id cartId = (Id)inputMap.get('CartId');
 
+
         Map<String, String> fMappers = vHelper.getFieldMappers('vlocity_cmt__ContractLineItem__c', getCartItemObjectName(cartId));
-        vlocity_cmt__ContractLineItem__c[] cLIs = getAmendingContractLineItems(masterId, fMappers.keySet());
+        vlocity_cmt__ContractLineItem__c[] cLIs = getAmendingContractLineItems(contractId, fMappers.keySet());
 
         vLogger.writeVar('AmendingCLIs', cLIs);
 
@@ -97,13 +105,15 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
             String lineNumber = cLI.vlocity_cmt__LineNumber__c;
             if (qLIRootLN != cLIRootLN) {
-                lineNumber = String.valueOf(qLIRootLN).leftPad(4, '0') + lineNumber.substring(5);
+                lineNumber = String.valueOf(qLIRootLN).leftPad(4, '0') + (lineNumber.length() == 4 ? '' : lineNumber.substring(4));
             }
 
             SObject cartItem = newCartItem(cartId);
             vHelper.copySObjectFieldValues(cLI, cartItem, fMappers);
+            cartItem.put('vlocity_cmt__Action__c', 'Existing');
             cartItem.put('vlocity_cmt__LineNumber__c', lineNumber);
 
+    
             insertItems.add(cartItem);
         }
 
@@ -114,77 +124,9 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
         return true;
     }
 
-    Boolean amendContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
-        Id cartId = (Id)inputMap.get('CartId');
-        Id contractId = (Id)inputMap.get('ContractId'); // Contract Id
-        Id[] itemIds = (Id[])inputMap.get('ItemIds');   // Id Arrays of Contract Line Item to amend
-
-
-        // ContractLineItem -> cartLineItem
-        Map<String, String> fMappers = vHelper.getFieldMappers('vlocity_cmt__ContractLineItem__c', getCartItemObjectName(cartId));
-        
-        List<vlocity_cmt__ContractLineItem__c> contractItems = retrieveContractLineItems(contractId, itemIds, fMappers.keySet());
-
-
-        String query = 'SELECT Id, vlocity_cmt__LineNumber__c, vlocity_cmt__AssetReferenceId__c FROM ' + getCartItemObjectName(cartId) + ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId';
-        Map<String, SObject> cartItems = new Map<String, SObject>();
-        Integer lastLN = 0;
-        for (SObject cartItem : Database.query(query)) {
-            cartItems.put((String)cartItem.get('vlocity_cmt__AssetReferenceId__c'), cartItem);
-            Integer ln = Integer.valueOf((String)cartItem.get('vlocity_cmt__LineNumber__c'));
-            if (ln > lastLN) lastLN = ln;
-        }
-
-        List<String> childLNPrefixes = new List<String>();
-        for (Integer i=contractItems.size() - 1; i>=0; i--) {
-            vlocity_cmt__ContractLineItem__c contractItem = contractItems[i];
-
-            if (contractItem.vlocity_cmt__LineNumber__c.length() > 4) {
-                throw new vContractServiceException('The selected contract line item with LineNumber ' + contractItem.vlocity_cmt__LineNumber__c + ' is not a root item and can not be amended.');
-            }
-            if (cartItems.containsKey(contractItem.vlocity_cmt__AssetReferenceId__c)) {
-                contractItems.remove(i); // Remove the contract item because it's added to the cart for amending already
-            } else {
-                childLNPrefixes.add(contractItem.vlocity_cmt__LineNumber__c + '.%');
-            }
-        }
-
-        if (contractItems.size() > 0) {
-            // Retrieve child contract line items of the root contract line items
-            contractItems.addAll(retrieveChildContractLineItems(contractId, childLNPrefixes, fMappers.keySet()));
-
-            List<SObject> insertItems = new List<SObject>();
-
-            String cartItemRootLN;
-            for (Integer i=0; i < contractItems.size(); i++) {
-                vlocity_cmt__ContractLineItem__c contractItem = contractItems[i];
-                if (contractItem.vlocity_cmt__LineNumber__c.length() == 4) {
-                    lastLN += 1;   // increase lastLN of cart item
-                    cartItemRootLN = String.valueOf(lastLN).leftPad(4, '0');
-                }
-
-                SObject cartItem = newCartItem(cartId);
-                vHelper.copySObjectFieldValues(contractItem, cartItem, fMappers);
-
-                // System.debug(JSON.serialize(fMappers));
-                // System.debug(JSON.serialize(contractItem));
-                // System.debug(JSON.serialize(cartItem));
-                
-
-                // Bump up the LineNumber__c for the new create cart item
-                cartItem.put('vlocity_cmt__Action__c', 'Existing'); // Flag for MACD
-                cartItem.put('vlocity_cmt__LineNumber__c', cartItemRootLN + contractItem.vlocity_cmt__LineNumber__c.subString(4));
-
-                insertItems.add(cartItem);
-            }
-
-            insert insertItems;
-        }
-
-        
-        return true;
-    }
-
+    /**
+     * Activate contract line items on activating a master or amendment contract.
+     */
     Boolean activateContractLineItems(Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         Id contractId = (Id)inputMap.get('ContractId'); // Contract Id
 
@@ -262,8 +204,32 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
 
         String query = 'SELECT ' + String.join(new List<String>(reqiredFields), ',') + 
             ' FROM ' + getCartItemObjectName(cartId) + 
-            ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId AND vlocity_cmt__Action__c != \'Existing\'';
-        return Database.query(query);
+            ' WHERE ' + getCartItemParentFieldName(cartId) + '=:cartId' + // AND vlocity_cmt__Action__c != \'Existing\'' +
+            ' ORDER BY vlocity_cmt__LineNumber__c';
+
+        List<SObject> items4CLIs = new List<SObject>();
+        List<SObject> bundleProducts = new List<SObject>();
+        String currentRootLN = '';
+        Boolean bundleHasChanged = false;
+        for (SObject item : Database.query(query)) {
+            String myRootLN = ((String)item.get('vlocity_cmt__LineNumber__c')).left(4);
+            if (myRootLN != currentRootLN) {
+                if (bundleHasChanged) items4CLIs.addAll(bundleProducts);
+                // Reset
+                currentRootLN = myRootLN;
+                bundleHasChanged = false;
+                bundleProducts.clear();
+            }
+
+            bundleProducts.add(item);
+            if ((String)item.get('vlocity_cmt__Action__c') != 'Existing') {
+                bundleHasChanged = true;
+            }
+        }
+
+        if (bundleHasChanged) items4CLIs.addAll(bundleProducts);
+
+        return items4CLIs;
     }
 
 
@@ -272,14 +238,15 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
         Set<String> reqiredFields = new Set<String> {
             'vlocity_cmt__AssetReferenceId__c'.toLowerCase(),
             'vlocity_cmt__LineNumber__c'.toLowerCase(),
-            'vlocity_cmt__OriginalContractId__c'.toLowerCase()
+            'vlocity_cmt__ContractId__c'.toLowerCase()
+            // 'vlocity_cmt__OriginalContractId__c'.toLowerCase()
         };
         reqiredFields.addAll(fields);
         String query = 'SELECT ' + String.join(new List<String>(reqiredFields), ',') + 
             ' FROM vlocity_cmt__ContractLineItem__c' +
             ' WHERE (vlocity_cmt__ContractId__c=:masterContractId OR vlocity_cmt__ContractId__r.vlocity_cmt__OriginalContractId__c=:masterContractId)' +
-            ' AND vlocity_cmt__ContractId__r.Status=\'Activated\' AND vlocity_cmt__LineStatus__c=\'Active\' AND Action__c IN (\'Add\', \'Change\')' +
-            ' ORDER BY vlocity_cmt__OriginalContractId__c, vlocity_cmt__LineNumber__c';
+            ' AND vlocity_cmt__ContractId__r.Status=\'Activated\' AND vlocity_cmt__LineStatus__c=\'Active\' AND Action__c IN (\'Add\', \'Change\', \'Existing\')' +
+            ' ORDER BY vlocity_cmt__ContractId__r.vlocity_cmt__OriginalContractId__c, vlocity_cmt__LineNumber__c';
         
         vLogger.writeVar('query', query);
 
