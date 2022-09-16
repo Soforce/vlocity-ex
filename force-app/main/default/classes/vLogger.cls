@@ -13,7 +13,7 @@ public with sharing class vLogger {
     }
 
     private static void logMessage(LoggingLevel level, String message) {
-        System.debug(level, 'vLogger| ' + message);
+        System.debug(level, 'vLogger: ' + message);
     }
 
 
