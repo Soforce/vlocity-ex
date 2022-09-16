@@ -29,10 +29,12 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
 
     public class AddProductsWithCfgMessage extends CartMessage {
         Map<String, Object> attributeVals;
+        Map<String, Object> fieldVals;
         public override CartMessageType getMessageType() { return CartMessageType.AddProductsWithCfg; }
-        public AddProductsWithCfgMessage(String messageId, Map<String, Object> attributeVals) {
+        public AddProductsWithCfgMessage(String messageId, Map<String, Object> attributeVals, Map<String, Object> fieldVals) {
             this.messageId = messageId;
             this.attributeVals = attributeVals;
+            this.fieldVals = fieldVals;
         }
     }
 
@@ -68,12 +70,27 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
             if (cartId.getSobjectType() == Schema.Quote.SObjectType || cartId.getSobjectType() == Schema.Order.SObjectType || cartId.getSobjectType() == Schema.Opportunity.SObjectType) {            
                 for (Object item : (List<Object>)inputMap.get('items')) {
                     Map<String, Object> itemToAdd = (Map<String, Object>)item;
-                    Map<String, Object> attributesToUpdate = (Map<String, Object>)itemToAdd.get('attributesToUpdate');     
-                    if (attributesToUpdate != null && attributesToUpdate.size() > 0) {
+                    Map<String, Object> attributesToUpdateV2 = (Map<String, Object>)itemToAdd.get('attributesToUpdate2');
+                    if (attributesToUpdateV2 != null) {
+                        // AddWithConfiguration V2 is used.
+                        Map<String, Object> fieldsToUpdateV2 = (Map<String, Object>)itemToAdd.get('fieldsToUpdate2');
                         String[] itemIds = ((String)itemToAdd.get('itemId')).split(',');
                         for (String itemId : itemIds) {
-                            AddProductsWithCfgMessage message = new AddProductsWithCfgMessage(itemId.trim(), attributesToUpdate);
+                            Map<String, Object> attributesToUpdate = (Map<String, Object>)attributesToUpdateV2.get(itemId);
+                            Map<String, Object> fieldsToUpdate = fieldsToUpdateV2 == null ? null : (Map<String, Object>)fieldsToUpdateV2.get(itemId);
+                            if (attributesToUpdate != null || fieldsToUpdate != null) {
+                                AddProductsWithCfgMessage message = new AddProductsWithCfgMessage(itemId.trim(), attributesToUpdate, fieldsToUpdate);
+                                addCartMessage(message);
+                            }
+                        }
+                    } else {
+                        Map<String, Object> attributesToUpdate = (Map<String, Object>)itemToAdd.get('attributesToUpdate');     
+                        if (attributesToUpdate != null && attributesToUpdate.size() > 0) {
+                            // String[] itemIds = ((String)itemToAdd.get('itemId')).split(',');
+                            // for (String itemId : itemIds) {
+                            AddProductsWithCfgMessage message = new AddProductsWithCfgMessage((String)itemToAdd.get('itemId'), attributesToUpdate, null);
                             addCartMessage(message);
+                            // }
                         }
                     }
                 }
@@ -91,20 +108,28 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
             String pbeId = (String)xLI.get('PricebookEntryId');
             AddProductsWithCfgMessage message = (AddProductsWithCfgMessage)getCartMessage(CartMessageType.AddProductsWithCfg, pbeId);
             if (message != null) {
-                String attributeFieldName;
-                if (vHelper.isV2Attribute(xLI.getSObjectType())) {
-                    // v2
-                    attributeFieldName = 'vlocity_cmt__AttributeSelectedValues__c'; 
-                } else {
-                    // v1
-                    attributeFieldName = 'vlocity_cmt__JSONAttribute__c'; 
+                if (message.attributeVals != null) {
+                    String attributeFieldName;
+                    if (vHelper.isV2Attribute(xLI.getSObjectType())) {
+                        // v2
+                        attributeFieldName = 'vlocity_cmt__AttributeSelectedValues__c'; 
+                    } else {
+                        // v1
+                        attributeFieldName = 'vlocity_cmt__JSONAttribute__c'; 
+                    }
+                    
+                    String jsonAttribute = (String)xLI.get(attributeFieldName);
+                    
+                    String modifiedJsonAttribute = vHelper.setJSONAttributes(jsonAttribute, message.attributeVals);
+                    
+                    vLogger.writeVar('modifiedJsonAttribute', modifiedJsonAttribute);
+                    xLI.put(attributeFieldName, modifiedJsonAttribute);
                 }
-
-                String jsonAttribute = (String)xLI.get(attributeFieldName);
-                String modifiedJsonAttribute = vHelper.setJSONAttributes(jsonAttribute, message.attributeVals);
-
-                vLogger.writeVar('modifiedJsonAttribute', modifiedJsonAttribute);
-                xLI.put(attributeFieldName, modifiedJsonAttribute);
+                if (message.fieldVals != null) {
+                    for (String fieldName : message.fieldVals.keySet()) {
+                        xLI.put(fieldName, message.fieldVals.get(fieldName));
+                    }
+                }
             }
         } catch (Exception ex) {
             throw ex;
