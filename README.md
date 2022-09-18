@@ -468,42 +468,52 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
 ## <a id="amend-pricing"></a> Amend Contract Pricing Schedules
 
 ### ContractService APIs
-refreshContractLineItems  
-generateAmendingCartItems  
-activateContractLineItems
+The following methods are provided by vContractService Apex class (implements VlocityOpenInterface) to support the capability to amend the contract pricing schedules.
+* **refreshContractLineItems**  
+* **generateAmendingCartItems**  
+* **activateContractLineItems**
 
 #### refreshContractLineItems
+A full refresh of contract line items from cart item records. After refresh, the contract line items are one-to-one mapped to the cart item records by the value of AssetReferenceId__c field.  
+The method can be used to create contract line items for a new created contract or update contract line items for an existing contract.  
+If the cart is created from the amendment process, only updated cart items are synced into the contract. If the updated item is within a bundle, the whole bundle is copied over.
 * **MethodName**: *refreshContractLineItems*   
 * **inputMap**  
-  * *CartId*
+  * *CartId*  
+    Id of the cart (opportunity/quote/order) used to configure the pricing for the contract.
   * *ContractId*  
+    Id of the contract, either the master or amendment contract.
 ```
 {
-  "CartId": "{CartObjectId}",
+  "CartId": "{CartId}",
   "ContractId": "{ContractId}"
 }
 ```
 
-#### generateAmendingCartItems
+#### generateAmendingCartItems  
+Similar to ABO (Asset-Based-Order), this method generates amending cart line items from a master contract (and its amendment contracts) for ACD(Add/Change/Disconnect) operations.
 * **MethodName**: *generateAmendingCartItems*   
 * **inputMap**  
-  * *CartId*
+  * *CartId*  
+    Id of the cart (opportunity/quote/order) used to amend a master contract.
   * *ContractId*  
+    Id of the master contract.
 ```
 {
-  "CartId": "{CartObjectId}",
-  "ContractId": "{ContractId}"
+  "ContractId": "{MasterContractId}",
+  "CartId": "{CartId}"
 }
 ```
 
 #### activateContractLineItems
+This method activates the contract line items by setting the LineStatus__c to *Active*.  
+If the contract is an amendment contract, the line items from the original master/amendment contracts are deactivated (LineStatus__c=*Inactive*) if they were amended in the current amendment contract.
 * **MethodName**: *activateContractLineItems*   
 * **inputMap**  
-  * *CartId*
-  * *ContractId*  
+  * *ContractId*   
+    Id of the contract, either the master or the amendment contract
 ```
 {
-  "CartId": "{CartObjectId}",
   "ContractId": "{ContractId}"
 }
 ```
