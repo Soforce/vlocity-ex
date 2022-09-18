@@ -22,8 +22,11 @@ The custom functions provided includes:
     Convert a list of attribute name & value pairs into the structured JSON by the attribute name. For example: *{ "parent.child": "some value" }* is converted to *{ 
       "parent": { "child": "some value" } }*.   
 
-* **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
+* **[Set Default Attribute & Field Values on Adding Products to Cart (PostCartsItems)](#add-products-with-cfg)**  
 This solution provides you the ability to set attribute values on adding products to the cart with postCartsItems CPQ API. Similar to set field values with the "fieldsToUpdate", a new "attributesToUpdate" is added to the postCartsItems API. Follow the instructions to install and configure the manifest (addProductsWithCfg.xml) file and no extra coding is required. 
+
+* **[Amending Contract Pricing Schedule](#amend-pricing)**  
+This CLM extension allows you to amend the pricing schedule from an activated contract. The amending process support Add/Change/Disconnect actions. 
 
 * **[Filter Based Discount](#ef-based-discount)**  
 The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
@@ -460,6 +463,54 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
                 vCpqService.addProductsWithCfg(inputMap);
             }
 ```
+
+
+## <a id="amend-pricing"></a> Amend Contract Pricing Schedules
+
+### ContractService APIs
+refreshContractLineItems  
+generateAmendingCartItems  
+activateContractLineItems
+
+#### refreshContractLineItems
+* **MethodName**: *refreshContractLineItems*   
+* **inputMap**  
+  * *CartId*
+  * *ContractId*  
+```
+{
+  "CartId": "{CartObjectId}",
+  "ContractId": "{ContractId}"
+}
+```
+
+#### generateAmendingCartItems
+* **MethodName**: *generateAmendingCartItems*   
+* **inputMap**  
+  * *CartId*
+  * *ContractId*  
+```
+{
+  "CartId": "{CartObjectId}",
+  "ContractId": "{ContractId}"
+}
+```
+
+#### activateContractLineItems
+* **MethodName**: *activateContractLineItems*   
+* **inputMap**  
+  * *CartId*
+  * *ContractId*  
+```
+{
+  "CartId": "{CartObjectId}",
+  "ContractId": "{ContractId}"
+}
+```
+
+
+
+
 
 ## <a id="ef-based-discount"></a> Configure Discount Products with Entity Filter
 You can either select product(s) or catalogs when you configure a discount in the Product Designer (or Product Console). Sometime you may need to configure a dynamic products for a discount based off run-time query instead of static predefined product selections. This solution extends the OOTB Discount with EntityFilter to support dynamic query for the qualified products. For example, the discount is qualfiied for any rate plans with 5GB or bigger data plan.
