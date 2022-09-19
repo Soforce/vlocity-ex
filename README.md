@@ -22,8 +22,11 @@ The custom functions provided includes:
     Convert a list of attribute name & value pairs into the structured JSON by the attribute name. For example: *{ "parent.child": "some value" }* is converted to *{ 
       "parent": { "child": "some value" } }*.   
 
-* **[Add Products to Cart (PostCartsItems) with Configuration (Attributes)](#add-products-with-cfg)**  
+* **[Set Default Attribute & Field Values on Adding Products to Cart (PostCartsItems)](#add-products-with-cfg)**  
 This solution provides you the ability to set attribute values on adding products to the cart with postCartsItems CPQ API. Similar to set field values with the "fieldsToUpdate", a new "attributesToUpdate" is added to the postCartsItems API. Follow the instructions to install and configure the manifest (addProductsWithCfg.xml) file and no extra coding is required. 
+
+* **[Amending Contract Pricing Schedule](#amend-pricing)**  
+This CLM extension allows you to amend the pricing schedule from an activated contract. The amending process support Add/Change/Disconnect actions. 
 
 * **[Filter Based Discount](#ef-based-discount)**  
 The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
@@ -460,6 +463,64 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
                 vCpqService.addProductsWithCfg(inputMap);
             }
 ```
+
+
+## <a id="amend-pricing"></a> Amend Contract Pricing Schedules
+
+### ContractService APIs
+The following methods are provided by vContractService Apex class (implements VlocityOpenInterface) to support the capability to amend the contract pricing schedules.
+* **refreshContractLineItems**  
+* **generateAmendingCartItems**  
+* **activateContractLineItems**
+
+#### refreshContractLineItems
+A full refresh of contract line items from cart item records. After refresh, the contract line items are one-to-one mapped to the cart item records by the value of AssetReferenceId__c field.  
+The method can be used to create contract line items for a new created contract or update contract line items for an existing contract.  
+If the cart is created from the amendment process, only updated cart items are synced into the contract. If the updated item is within a bundle, the whole bundle is copied over.
+* **MethodName**: *refreshContractLineItems*   
+* **inputMap**  
+  * *CartId*  
+    Id of the cart (opportunity/quote/order) used to configure the pricing for the contract.
+  * *ContractId*  
+    Id of the contract, either the master or amendment contract.
+```
+{
+  "CartId": "{CartId}",
+  "ContractId": "{ContractId}"
+}
+```
+
+#### generateAmendingCartItems  
+Similar to ABO (Asset-Based-Order), this method generates amending cart line items from a master contract (and its amendment contracts) for ACD(Add/Change/Disconnect) operations.
+* **MethodName**: *generateAmendingCartItems*   
+* **inputMap**  
+  * *CartId*  
+    Id of the cart (opportunity/quote/order) used to amend a master contract.
+  * *ContractId*  
+    Id of the master contract.
+```
+{
+  "ContractId": "{MasterContractId}",
+  "CartId": "{CartId}"
+}
+```
+
+#### activateContractLineItems
+This method activates the contract line items by setting the LineStatus__c to *Active*.  
+If the contract is an amendment contract, the line items from the original master/amendment contracts are deactivated (LineStatus__c=*Inactive*) if they were amended in the current amendment contract.
+* **MethodName**: *activateContractLineItems*   
+* **inputMap**  
+  * *ContractId*   
+    Id of the contract, either the master or the amendment contract
+```
+{
+  "ContractId": "{ContractId}"
+}
+```
+
+
+
+
 
 ## <a id="ef-based-discount"></a> Configure Discount Products with Entity Filter
 You can either select product(s) or catalogs when you configure a discount in the Product Designer (or Product Console). Sometime you may need to configure a dynamic products for a discount based off run-time query instead of static predefined product selections. This solution extends the OOTB Discount with EntityFilter to support dynamic query for the qualified products. For example, the discount is qualfiied for any rate plans with 5GB or bigger data plan.
