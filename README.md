@@ -519,7 +519,22 @@ If the contract is an amendment contract, the line items from the original maste
 ```
 
 
-
+### Deployment
+The "Amendment.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Amendment" extension to your org:
+* **deploy without tests**
+```
+sfdx force:source:deploy -x projects/Amendment.xml -u {orgName}
+```
+### Post-Deployment Steps
+#### Configure Field Mapper
+*  Execute the following sfdx command to clean the existing Field Mappers between QuoteLineItem, OrderItem and vlocity_cmt__ContractLineItem__c
+```
+sfdx force:apex:execute -f ./scripts/apex/amendment.apex -u {orgName}
+```
+* Execute the following sfdx command to load new Field Mappers for contract amendment process
+```
+sfdx force:data:bulk:upsert -s vlocity_cmt__CustomFieldMap__c -f ./data/FieldMapper-Amendment.csv -i Name -w 10 -u {orgName}
+```
 
 
 ## <a id="ef-based-discount"></a> Configure Discount Products with Entity Filter
