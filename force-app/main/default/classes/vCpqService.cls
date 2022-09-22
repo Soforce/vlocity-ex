@@ -8,6 +8,12 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
                     setProductsWithCfg(xLI);
                 }
             }
+            // Following two methods are designed to keep MRC within MACD  
+            else if (methodName == 'KeepNRCInMACDStart') {
+                keepNRCForMACDProcess('Start');
+            } else if (methodName == 'KeepNRCInMACDStop') {
+                keepNRCForMACDProcess('Stop');
+            }
             return true;
         }
         catch (Exception ex) {
@@ -136,5 +142,34 @@ global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterfac
         } finally {
             vLogger.writeInfo('Exit vCpqService.setProductsWithCfg');
         }
+    }
+
+    /**
+     * The method is used to skip the logic to zero out NRC within the MACD process. It's used within PricingPlan
+     */
+    static Map<Id, String> originalActions = new Map<Id, String>(); 
+    Boolean keepNRCForMACDProcess(String command) {
+        vLogger.writeInfo('keepNRCForMACDProcess - ' + command);
+        List<SObject> itemList = (List<SObject>)vlocity_cmt.PricingPlanService.getFromPricingContext('LineItemList');
+        if (command == 'Start') {
+            for (SObject xLI : itemList) {
+                String action = (String)xLI.get('vlocity_cmt__Action__c');
+                if (action == 'Existing' || action == 'Change') {
+                    originalActions.put(xLI.Id, action);
+                    xLI.put('vlocity_cmt__Action__c', 'Add'); // Put as "Add" to skip the logic of zeroing out the NRC
+                }
+            }
+
+            System.debug(JSON.serialize(originalActions));
+        } else if (command == 'Stop') {
+            for (SObject xLI : itemList) {
+                if (originalActions.containsKey(xLI.Id)) {
+                    // Needs to restore the original Action
+                    xLI.put('vlocity_cmt__Action__c', originalActions.get(xLI.Id));
+                }
+            }
+        }
+
+        return true;
     }
 }
