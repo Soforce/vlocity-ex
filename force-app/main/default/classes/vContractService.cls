@@ -15,7 +15,9 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
                 return generateAmendingCartItems(inputMap, outputMap, options);
             } else if (methodName == 'ActivateContractLineItems') {
                 return activateContractLineItems(inputMap, outputMap, options);
-            }
+            } 
+             
+
             return true;
         }
         catch (Exception ex) {
@@ -25,6 +27,8 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
             vLogger.writeInfo('Exit vContractService.' + methodName);
         }
     }
+
+
 
 
     /**
