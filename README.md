@@ -31,9 +31,13 @@ This CLM extension allows you to amend the pricing schedule from an activated co
 * **[Filter Based Discount](#ef-based-discount)**  
 The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
 
+* **[Retain NRC in MACD Process](#keep-nrc-macd)**  
+The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.
+
 * **[Vlocity JSON Attribute Viewer](#json-attribute-viewer)**  
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
+
 
 * **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
 
@@ -562,6 +566,22 @@ sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecified
 ![Image of Catalog with EF](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-Catalog.PNG)
 * Create your discount and select the catalog configured above.
 
+## <a id="keep-nrc-macd"></a> Retain NRC in MACD Process
+The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.
+
+### Deployment
+```
+sfdx force:source:deploy -x projects/RetainNRC.xml -u {orgName}
+```
+### Post-Deployment
+Register two extra steps in the "Default Pricing Plan":
+* KeepNRCInMACDStart  
+This step should be added just before the "Initialize Pricing Context" step. 
+
+* KeepNRCInMACDStop    
+This step should be added just after the "Initialize Pricing Context" step.
+
+![Image of Configuration](./images/retainNRC-PostCfg.jpg)
 
 
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
