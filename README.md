@@ -31,9 +31,13 @@ This CLM extension allows you to amend the pricing schedule from an activated co
 * **[Filter Based Discount](#ef-based-discount)**  
 The solution allows you to use entity filter to define the qualifed products for a given discount instead of pre-selected products or catalogs in the design time. 
 
+* **[Retain NRC in MACD Process](#keep-nrc-macd)**  
+The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.
+
 * **[Vlocity JSON Attribute Viewer](#json-attribute-viewer)**  
 With Vlocity JSON Attribute Viewer, you can view and modify Vlocity attributes of a xLI record much faster and easier because you don't need to work with the fancy raw JSON blob anymore.  
 Vlocity JSON Attribute Viewer is a Lightning Web Component which can be dropped into any SObject which supports JSONAttribut. Both v1 and v2 Attribute models are supported.  
+
 
 * **[Order Management API Integration via TMF Specifications](OM-TMF.md)**
 
@@ -553,15 +557,31 @@ sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecified
 
 ### Post-Deployment Configuration
 * Register the vCpqEfDiscountService.ApplyFilterBasedDiscount to your Pricing Plan.
-![Image of vCpqEfDiscountService.ApplyFilterBasedDiscount Step](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-PPlan.PNG)
+![Image of vCpqEfDiscountService.ApplyFilterBasedDiscount Step](./images/vEfDiscount-PPlan.PNG)
 
 ### Configure Filter Based Discount
 * Create your EntityFilter, e.g. the following a filter for all black iphones:
-![Image of Black iPhone Filter](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-EF.PNG)
+![Image of Black iPhone Filter](./images/vEfDiscount-EF.PNG)
 * Create a catalog and select the entity filter created in the previous step:
-![Image of Catalog with EF](https://github.com/Soforce/vlocity-ex/blob/master/images/vEfDiscount-Catalog.PNG)
+![Image of Catalog with EF](./images/vEfDiscount-Catalog.PNG)
 * Create your discount and select the catalog configured above.
 
+## <a id="keep-nrc-macd"></a> Retain NRC in MACD Process
+The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.
+
+### Deployment
+```
+sfdx force:source:deploy -x projects/RetainNRC.xml -u {orgName}
+```
+### Post-Deployment
+Register two extra steps in the "Default Pricing Plan":
+* KeepNRCInMACDStart  
+This step should be added just before the "Initialize Pricing Context" step. 
+
+* KeepNRCInMACDStop    
+This step should be added just after the "Initialize Pricing Context" step.
+
+![Image of Configuration](./images/retainNRC-PostCfg.jpg)
 
 
 ## <a id="json-attribute-viewer"></a> Vlocity Attribute Viewer
@@ -570,7 +590,7 @@ By adding the Vlocity JSON Attribute Viewer Lightning web component into the Lig
 * You can open the attribute to see the details of it
 * You can modify the attribute and save it back to the record
 
-![Image of JSON Attribute Viewer](https://github.com/Soforce/vlocity-ex/blob/master/images/json-viewer.jpg)
+![Image of JSON Attribute Viewer](./images/json-viewer.jpg)
 
 ### Deploy JSONAttribute Viewer
 The "JsonViewer.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "JSONAttribute viewer" to your org:
