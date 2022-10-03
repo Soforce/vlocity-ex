@@ -419,7 +419,9 @@ Here is the transformed result
 ## <a id="add-products-with-cfg"></a> Add Products to Carts (PostCartsItems) with Configuration (attributes)
 With the postCartsItems API, you can set the field values with the “fieldsToUpdate” parameter but you cannot achieve the same thing for attributes. In field implementation, it’s normally done by hooking up custom code in the PostCartsItems_PostInvoke event or initiating another putCartsItems API call. Both of them are not ideal because they impact the performance and need custom development.
 
-Here is the solution which allows you to add products with configured attribute values. Once you deploy and configure the solution, it will automatically set the attribute values passed by the extra “attributesToUpdate” JSON node of the “PostCartsItems” payload. This solution has no extra SOQLs and DMLs and almost zero impact on the performance and governor limits.
+Here is the solution which allows you to add products with configured attribute values. Once you deploy and configure the solution, it will automatically set the attribute values passed by the extra “attributesToUpdate” JSON node of the “PostCartsItems” payload. This solution has no extra SOQLs and DMLs and almost zero impact on the performance and governor limits.  
+
+A detail explaination of the solution can be found at [Set Initial JSON Attribute & Field Values on Adding Products to Cart](https://wp.me/pedwyd-y).
 
 Here is a sample payload for the CPQ PostCartsItems API: 
 ```
@@ -460,7 +462,7 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
 * Add “SoforceLogging” entry to the “CPQ Configuration Setup” of “Vlocity CMT Administration“. Set it to false by default. The setting is used to control the debug log output.
 * Register the vCpqAppHandlerHookImpl to the CpqAppHandlerHook Interface Implementation. If you have your own CpqAppHandlerHook implementation, you need to merge the code into your implementation(see the last optional step below).
 * Register the vCpqService.ProcessCartMessage to your Pricing Plan.
-![Image of vCpqService.ProcessCartMessage Step](https://github.com/Soforce/vlocity-ex/blob/master/images/vCpqService-ProcessCartMessage-Step.PNG)
+![Image of vCpqService.ProcessCartMessage Step](./images/vCpqService-ProcessCartMessage-Step.PNG)
 * (Optional) Merge vCpqAppHandlerHookImpl into your own CpqAppHandlerHook implementation by adding “vCpqService.addProductsWithCfg(inputMap)” into the “postCartsItems.PreInvoke” section. See the code snippet below:
 ```
             if (methodName == 'postCartsItems.PreInvoke') {
@@ -470,32 +472,23 @@ sfdx force:source:deploy -x projects/addProductsWithCfg.xml -u {orgName} -l RunS
 
 
 ## <a id="amend-pricing"></a> Amend Contract Pricing Schedules
-
+A contract pricing schedule is the price listed in the contract for the products or services to be received in return. This solution explains how to extend OOTB MACD to amend the contract pricing schedule.  
+A detail explaination of the solution can be found at [Amend Contract Pricing Schedule via MACD](https://wp.me/pedwyd-2d).
 ### ContractService APIs
 The following methods are provided by vContractService Apex class (implements VlocityOpenInterface) to support the capability to amend the contract pricing schedules.
-* **refreshContractLineItems**  
-* **generateAmendingCartItems**  
-* **activateContractLineItems**
 
-#### refreshContractLineItems
+* **[generateAmendingCartItems](#generateAmendingCartItems)**  
+Similar to ABO (Asset-Based-Order), this method generates amending cart line items from a master contract (and its amendment contracts) for ACD(Add/Change/Disconnect) operations.
+* **[refreshContractLineItems](#refreshContractLineItems)**  
 A full refresh of contract line items from cart item records. After refresh, the contract line items are one-to-one mapped to the cart item records by the value of AssetReferenceId__c field.  
 The method can be used to create contract line items for a new created contract or update contract line items for an existing contract.  
 If the cart is created from the amendment process, only updated cart items are synced into the contract. If the updated item is within a bundle, the whole bundle is copied over.
-* **MethodName**: *refreshContractLineItems*   
-* **inputMap**  
-  * *CartId*  
-    Id of the cart (opportunity/quote/order) used to configure the pricing for the contract.
-  * *ContractId*  
-    Id of the contract, either the master or amendment contract.
-```
-{
-  "CartId": "{CartId}",
-  "ContractId": "{ContractId}"
-}
-```
+* **[activateContractLineItems](#activateContractLineItems)**  
+This method activates the contract line items by setting the LineStatus__c to *Active*.  
+If the contract is an amendment contract, the line items from the original master/amendment contracts are deactivated (LineStatus__c=*Inactive*) if they were amended in the current amendment contract.
 
-#### generateAmendingCartItems  
-Similar to ABO (Asset-Based-Order), this method generates amending cart line items from a master contract (and its amendment contracts) for ACD(Add/Change/Disconnect) operations.
+
+#### <a id="generateAmendingCartItems"></a> **generateAmendingCartItems**  
 * **MethodName**: *generateAmendingCartItems*   
 * **inputMap**  
   * *CartId*  
@@ -508,10 +501,33 @@ Similar to ABO (Asset-Based-Order), this method generates amending cart line ite
   "CartId": "{CartId}"
 }
 ```
+* **outputMap**  
+  * *success*  
+    True or false to indicate if the method is executed successfully.
+  * *error*  
+    Error message returned.
 
-#### activateContractLineItems
-This method activates the contract line items by setting the LineStatus__c to *Active*.  
-If the contract is an amendment contract, the line items from the original master/amendment contracts are deactivated (LineStatus__c=*Inactive*) if they were amended in the current amendment contract.
+#### <a id="refreshContractLineItems"></a> **refreshContractLineItems**  
+* **MethodName**: *refreshContractLineItems*   
+* **inputMap**  
+  * *CartId*  
+    Id of the cart (opportunity/quote/order) used to configure the pricing for the contract.
+  * *ContractId*  
+    Id of the contract, either the master or amendment contract.
+```
+{
+  "CartId": "{CartId}",
+  "ContractId": "{ContractId}"
+}
+```
+* **outputMap**  
+  * *success*  
+    True or false to indicate if the method is executed successfully.
+  * *error*  
+    Error message returned.
+
+
+#### <a id="activateContractLineItems"></a> **activateContractLineItems**  
 * **MethodName**: *activateContractLineItems*   
 * **inputMap**  
   * *ContractId*   
@@ -521,6 +537,11 @@ If the contract is an amendment contract, the line items from the original maste
   "ContractId": "{ContractId}"
 }
 ```
+* **outputMap**  
+  * *success*  
+    True or false to indicate if the method is executed successfully.
+  * *error*  
+    Error message returned.
 
 
 ### Deployment
@@ -542,7 +563,8 @@ sfdx force:data:bulk:upsert -s vlocity_cmt__CustomFieldMap__c -f ./data/FieldMap
 
 
 ## <a id="ef-based-discount"></a> Configure Discount Products with Entity Filter
-You can either select product(s) or catalogs when you configure a discount in the Product Designer (or Product Console). Sometime you may need to configure a dynamic products for a discount based off run-time query instead of static predefined product selections. This solution extends the OOTB Discount with EntityFilter to support dynamic query for the qualified products. For example, the discount is qualfiied for any rate plans with 5GB or bigger data plan.
+You can either select product(s) or catalogs when you configure a discount in the Product Designer (or Product Console). Sometime you may need to configure a dynamic products for a discount based off run-time query instead of static predefined product selections. This solution extends the OOTB Discount with EntityFilter to support dynamic query for the qualified products. For example, the discount is qualfiied for any rate plans with 5GB or bigger data plan.  
+A detail explaination of the solution can be found at [Use Entity Filter to Configure Discount Products Dynamically](https://wp.me/pedwyd-h).
 
 ### Deploy Filter Based Discount
 The "EfDiscount.xml" manifest file is created under the "projects" folder. You can execute the following sfdx command to deploy "Filter Based Discount" to your org:
@@ -567,7 +589,8 @@ sfdx force:source:deploy -x projects/EfDiscount.xml -u {orgName} -l RunSpecified
 * Create your discount and select the catalog configured above.
 
 ## <a id="keep-nrc-macd"></a> Retain NRC in MACD Process
-The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.
+The OOTB default behavior is to zero out the NRC in the MACD process. The solution allows you to retain the NRC in the MACD journey.  
+A detail explaination of the solution can be found at [Retain NRC in MACD Process](https://wp.me/pedwyd-1M).
 
 ### Deployment
 ```
