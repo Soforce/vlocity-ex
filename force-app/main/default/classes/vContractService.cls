@@ -21,9 +21,12 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
             return true;
         }
         catch (Exception ex) {
+            outputMap.put('success', false);
+            outputMap.put('error', ex.getMessage());
             vLogger.write(ex);
             return false;
         } finally {
+            outputMap.put('success', true);
             vLogger.writeInfo('Exit vContractService.' + methodName);
         }
     }
@@ -154,7 +157,7 @@ global with sharing class vContractService implements vlocity_cmt.VlocityOpenInt
                     AND vlocity_cmt__LineStatus__c='Active' AND Action__c!='Disconnected' AND vlocity_cmt__AssetReferenceId__c IN :assetRefIds];
             
             for (vlocity_cmt__ContractLineItem__c cLI : cLIs) {
-                cLI.vlocity_cmt__LineStatus__c = 'Inactive';
+                cLI.vlocity_cmt__LineStatus__c = 'Superseded';
                 activateItems.add(cLI);
             }
         }
