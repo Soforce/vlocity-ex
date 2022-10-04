@@ -1,5 +1,5 @@
 /**
- * Service class for vlocity Contract Management
+ * Service class to extend the Salesforce Industries CLM capabilities.
  * @author soforce
  */
 global with sharing class vContractService implements vlocity_cmt.VlocityOpenInterface {

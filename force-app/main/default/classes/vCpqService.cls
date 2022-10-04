@@ -1,3 +1,7 @@
+/**
+ * Service Class to extend the Salesforce Industries CPQ capabilities.
+ * @author Soforce
+ */
 global with sharing class vCpqService implements vlocity_cmt.VlocityOpenInterface {
     global Boolean invokeMethod(String methodName, Map<String, Object> inputMap, Map<String, Object> outputMap, Map<String, Object> options) {
         vLogger.writeInfo('Enter vCpqService.' + methodName);
