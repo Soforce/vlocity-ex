@@ -39,12 +39,17 @@ public without sharing class vEventNotificationEngine {
      * @description Event Notification entity (data) structure
      */
     public without sharing class Event {
+        public String eventRecordId; // Record Id of Event_Notification__c 
+        protected transient Event_Notification__c eventRecord;
+
         public String eventId { get; }
         public String eventType { get; }
         public Datetime eventTime { get; }
         public Object event;
         public List<vCharacteristic> analyticCharacteristic;
         public Integer retryCount { get; set; }
+
+        // private transient String payload; 
     }
 
     
@@ -134,7 +139,69 @@ public without sharing class vEventNotificationEngine {
     /**
      * 
      */
+    public void process(String eventRecordId) {
+        try {
+            Event_Notification__c myEvent = [
+                SELECT Id, Entity__c, Error_Message__c, Event_Id__c, Event_Payload__c, Event_Time__c, Event_Type__c, Memory_Dump__c, Name, Performance_Matrix__c, Primary_Key__c, Rely_on_Key__c, Retry_Count__c, Status__c 
+                FROM Event_Notification__c WHERE Id=:eventRecordId
+            ];
+        
+        } catch (Exception ex) {
+
+        }
+    }
+
+    /**
+     * 
+     */
     public void process(String eventId, String eventType, Datetime eventTime, String eventPayload) {
+        try {
+            IEventService service = getEventServiceProvider(eventType);
+            Event event = serivce.initialize(eventId, eventType, eventTime, eventPayload);
+
+            process(event, service);
+        } catch (Exception ex) {
+
+        }
+
+        Event event = new Event(eventId, eventType, eventTime, eventPayload);
+
+        process(event);
+        // IEventService service = null;
+        // Event event = null;
+
+        // try {
+        //     // get the service provider class for the given eventType
+        //     service = getEventServiceProvider(eventType);
+        //     // initialize - JSON.deseriablize & validate
+        //     Event event = service.initialize(eventId, eventType, eventTime, eventPayload);
+        //     // preprocess the event JSON object. 
+        //     service.preprocess(event, ctx);
+
+        //     // check if the current event needs to be ignored.
+        //     if (isEventIgnorable(eventType, eventTime, serivce.getPrimaryKey())) {
+        //         throw new EventNotificationIgnorableException('The event is ignored because a later event for the same record and type has already been received.');
+        //     }
+
+        //     // Prepare the context variable
+        //     Map<String, Object> ctx = new Map<String, Object>();
+        //     //
+        //     service.process(event, ctx);
+        //     //
+        //     service.postprocess(event, ctx);
+
+        // } catch (EventNotificationRetriableException ex) {
+
+        // } catch (Exception ex) {
+
+        // }
+
+    }
+
+    /**
+     * 
+     */
+    public void process(Event event, IEventService service) {
         IEventService service = null;
         Event event = null;
 
@@ -163,7 +230,6 @@ public without sharing class vEventNotificationEngine {
         } catch (Exception ex) {
 
         }
-
     }
 
     /**
