@@ -28,38 +28,61 @@ public without sharing class vEventNotificationEngine {
         String getEventTag();
     }
 
-    public without sharing class vCharacteristic {
-        public String id;
-        public String name;
-        public Object value;
-        public String valueType;
-    }
+    // public without sharing class vCharacteristic {
+    //     public String id;
+    //     public String name;
+    //     public Object value;
+    //     public String valueType;
+    // }
 
     /**
      * @description Event Notification entity (data) structure
      */
     public without sharing class Event {
-        public String eventRecordId; // Record Id of Event_Notification__c 
+        public transient String id; // Record Id of Event_Notification__c 
         protected transient Event_Notification__c eventRecord;
 
         public String eventId { get; }
         public String eventType { get; }
         public Datetime eventTime { get; }
         public Object event;
-        public List<vCharacteristic> analyticCharacteristic;
-        public Integer retryCount { get; set; }
+
+        // public List<vCharacteristic> analyticCharacteristic;
+        public transient String status;
+        public transient String errorMessage; 
+        public transient Integer retryCount { get; set; }
+        public transient String primaryKey;
+        public transient String relyOnKey;
+        public transient String tag;
 
         // private transient String payload; 
+        public Event_Notification__c toSObject() {
+            return new Event_Notification__c(
+                Id = this.id,
+                Event_Id__c = eventId,
+                Event_Type__c = eventType,
+                Event_Time__c = eventTime
+            );
+        }
+
+        public void init(Event_Notification__c eventObj, IEventService service) {
+            this.id = eventObj.Id;
+            this.eventId = eventObj.Event_Id__c;
+            this.eventType = eventObj.Event_Type__c;
+            this.eventTime = eventObj.Event_Time__c;
+
+            this.event = service.descrializeJSON(eventObj);
+        }
     }
 
     
     /**
      * @description Retriable queue processor to retry the events with "Retriable Error"
      */
-    public class vRetriableQueueProcessor implements Queueable {
+    public class RetriableQueueProcessor implements Queueable {
         private Id retriableEventId;
         
-        public vRetriableQueueProcessor(Id retriableEventId) {
+        public RetriableQueueProcessor(Id retriableEventId) {
             this.retriableEventId = retriableEventId;
         } 
 
@@ -78,11 +101,11 @@ public without sharing class vEventNotificationEngine {
     /**
      * @description Rely-on Queue Processor to process events whose dependency has been resolved.  
      */
-    public class vRelyOnQueueProcessor implements Queueable {
+    public class RelyOnQueueProcessor implements Queueable {
         private List<Id> relyOnEventIds;
         private Integer index;
         
-        public vRelyOnQueueProcessor(List<String> relyOnEventIds, Integer index) {
+        public RelyOnQueueProcessor(List<String> relyOnEventIds, Integer index) {
             this.relyOnEventIds = relyOnEventIds;
             this.index = index;
         }
@@ -99,7 +122,7 @@ public without sharing class vEventNotificationEngine {
             } finally {
                 // Continue to process the next dependent Event
                 if (index + 1 < relyOnEventIds.size())
-                    System.enqueueJob(new vRelyOnQueueProcessor(this.relyOnEventIds, index + 1));
+                    System.enqueueJob(new RelyOnQueueProcessor(this.relyOnEventIds, index + 1));
             }
         }
     } 
@@ -202,10 +225,12 @@ public without sharing class vEventNotificationEngine {
      * 
      */
     public void process(Event event, IEventService service) {
-        IEventService service = null;
-        Event event = null;
+        Savepoint eventSP = Database.setSavepoint();
+        Integer start = Datetime.now().millisecond();
 
         try {
+            event.status = 'In Progress';
+
             // get the service provider class for the given eventType
             service = getEventServiceProvider(eventType);
             // initialize - JSON.deseriablize & validate
@@ -220,14 +245,43 @@ public without sharing class vEventNotificationEngine {
 
             // Prepare the context variable
             Map<String, Object> ctx = new Map<String, Object>();
+            
             //
             service.process(event, ctx);
-            //
-            service.postprocess(event, ctx);
+            
+            // process dependent events
+            processDependentEvents(event, ctx);
+
+            // 
+            // service.postprocess(event, ctx);
+            event.status = 'Success';
 
         } catch (EventNotificationRetriableException ex) {
+            // Rollback any previous DMLs for data integrity
+            Database.rollback(eventSP);
+            // Retry the event async by the queue
+            System.enqueueJob(new RetriableQueueProcessor(event.Id));
 
+            event.status = 'Retriable Error';
+            event.errorMessage = getErrorMessage(ex);
+
+            vLogger.write(ex);
         } catch (Exception ex) {
+            // Rollback any previous DMLs for data integrity
+            Database.rollback(eventSP);
+
+            if (ex instanceOf EventNotificationIgnorableException) {
+                event.status = 'Ignored';
+            } else if (ex instanceOf EventNotificationPendingException) {
+                event.status = 'Pending';
+            } else {
+                event.status = 'Fatal Error';
+            }
+            event.errorMessage = getErrorMessage(ex);
+
+            vLogger.write(ex);
+        } finally {
+
 
         }
     }
@@ -240,5 +294,37 @@ public without sharing class vEventNotificationEngine {
 
         Event_Notification__c[] evts = [SELECT Id FROM Event_Notification__c WHERE Primary_Key__c=:primaryKey AND Event_Time__c>:eventTime];
         return evts.size() > 0;
+    }
+
+    /**
+     * 
+     */
+    protected void processDependentEvents(Event event, Map<String, Object> ctx) {
+        // Kick-off queueable process for the events which rely on this event
+        if (String.isNotEmpty(event.primaryKey)) {
+            Event_Notification__c[] dependentEvents = [
+                SELECT Id FROM Event_Notification__c 
+                WHERE Rely_on_Key__c = :event.primaryKey AND Status__c = 'Pending'
+            ];
+            
+            if (dependentEvents.size() > 0) {
+                List<Id> relyOnEvIds = new List<Id>((new Map<Id, Event_Notification__c>(dependentEvents)).keySet());
+
+                // New Queueable process for the dependent events
+                AsyncOptions options = new AsyncOptions();
+                options.DuplicateSignature = QueueableDuplicateSignature.Builder()
+                            .addString('RelyOnQueueProcessor')
+                            .addString(myEvent.Event_Type__c)
+                            .addString(myEvent.Primary_Key__c)
+                            .build();
+                try {
+                    System.enqueueJob(new RelyOnQueueProcessor(relyOnEvIds, 0), options);
+                } catch (DuplicateMessageException ex) {
+                    vLogger.write('RelyOnQueueProcessor job was skipped due to an existing job currently running.');
+                } catch (Exception ex) {
+                    vLogger.write(ex);
+                }
+            }
+        }
     }
 }
